@@ -1,15 +1,17 @@
 {
   "name": "be_kids_system",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/server.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "be_kids_system": "file:",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "env": "^0.0.2",
