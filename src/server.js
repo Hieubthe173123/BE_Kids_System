@@ -4,10 +4,12 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./configs/dbConfig');
+const { connectRedis } = require("./configs/redisConfig")
 
 // Khai báo routes
 const student = require('./routes/studentRoute');
 const parent = require("./routes/parentRoute");
+const account = require("./routes/accountRoute");
 
 // Khai báo dotenv
 dotenv.config();
@@ -23,9 +25,13 @@ app.use(morgan('dev'));
 // Connect to MongoDB
 connectDB();
 
+// Connect Redis
+connectRedis();
+
 // Sử dụng đường dẫn
 app.use("/api/student",student); 
 app.use("/api/parent", parent);
+app.use("/api/account",account);
 
 // route test
 app.get('/', (req, res) => {

@@ -38,7 +38,7 @@ const findIdGeneric = (Model, populateFields = []) => async (req, res) => {
         const data = await query.exec();
 
         if (!data) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "Data not found" });
+            return res.status(HTTP_STATUS.NOT_FOUND).json(RESPONSE_MESSAGE.NOT_FOUND);
         }
 
         res.status(HTTP_STATUS.OK).json({ data });
@@ -48,8 +48,30 @@ const findIdGeneric = (Model, populateFields = []) => async (req, res) => {
 };
 
 
-const createGeneric = (Model) => async (req, res) => {
+const createGeneric = (Model, uniField = []) => async (req, res) => {
     try {
+        if (uniField.length > 0) {
+            const filter = {};
+            for (const item of uniField) {
+                if (req.body[item] !== undefined) {
+                    filter[item] = req.body[item];
+                }
+            }
+            
+            filter.status = true;
+
+            const existing = await Model.findOne(filter);
+
+            if (existing) {
+                return res.status(400).json({
+                    message: `${RESPONSE_MESSAGE.UNIQUE_FIELDS}: ${Object.keys(filter)
+                        .filter(key => key !== 'status')
+                        .map(key => `${key}='${filter[key]}'`)
+                        .join(', ')}`,
+                });
+            }
+        }
+
         const newData = new Model(req.body);
         const savedData = await newData.save();
 
@@ -57,7 +79,7 @@ const createGeneric = (Model) => async (req, res) => {
             message: RESPONSE_MESSAGE.CREATED,
             data: savedData,
         });
-    } catch (error) {
+    } catch (err) {
         res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
     }
 };
@@ -71,7 +93,7 @@ const deletedSoftGeneric = (Model) => async (req, res) => {
         data.active = false;
         await data.save();
         return res.status(HTTP_STATUS.OK).json(RESPONSE_MESSAGE.DELETED);
-    } catch (error) {
+    } catch (err) {
         res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
     }
 }
@@ -88,7 +110,7 @@ const updateGeneric = (Model, modelName) => async (req, res) => {
         }
 
         res.status(HTTP_STATUS.UPDATED).json(RESPONSE_MESSAGE.UPDATED);
-    } catch (error) {
+    } catch (err) {
         res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
     }
 };
