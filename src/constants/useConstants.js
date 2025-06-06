@@ -17,6 +17,7 @@ const RESPONSE_MESSAGE = {
     VALIDATION_ERROR: 'Dữ liệu không hợp lệ',
     UNAUTHORIZED: 'Không có quyền truy cập',
     MISSING_FIELDS: 'Vui lòng nhập đầy đủ các trường bắt buộc',
+    UNIQUE_FIELDS: 'Dữ liệu bị trùng'
 };
 
 const USER_ROLES = {
