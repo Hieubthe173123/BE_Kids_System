@@ -3,7 +3,8 @@ const HTTP_STATUS = {
     CREATED: 201,
     UPDATED: 203,
     BAD_REQUEST: 400,
-    UNAUTHORIZED: 403,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
     NOT_FOUND: 404,
     SERVER_ERROR: 500,
 };
@@ -14,8 +15,9 @@ const RESPONSE_MESSAGE = {
     UPDATED: 'Cập nhật thành công',
     DELETED: 'Xóa thành công',
     NOT_FOUND: 'Không tìm thấy dữ liệu',
+    FORBIDDEN: 'Không đủ quyền truy cập',
     VALIDATION_ERROR: 'Dữ liệu không hợp lệ',
-    UNAUTHORIZED: 'Không có quyền truy cập',
+    UNAUTHORIZED: 'Không tìm thấy tài khoản',
     MISSING_FIELDS: 'Vui lòng nhập đầy đủ các trường bắt buộc',
     UNIQUE_FIELDS: 'Dữ liệu bị trùng'
 };
@@ -35,11 +37,17 @@ const VALIDATION_CONSTANTS = {
     EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 }
 
+const TOKEN = {
+    EXPIRESIN_TOKEN: '1d',
+    EXPIRESIN_REFESH_TOKEN: '1d',
+    EX: 7 * 24 * 60 * 60 
+}
 
 
 module.exports = {
   HTTP_STATUS,
   RESPONSE_MESSAGE,
   USER_ROLES,
-  VALIDATION_CONSTANTS
+  VALIDATION_CONSTANTS,
+  TOKEN
 };
