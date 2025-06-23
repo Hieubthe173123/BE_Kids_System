@@ -17,8 +17,12 @@
     "env": "^0.0.2",
     "express": "^5.1.0",
     "express-handlebars": "^8.0.1",
+    "imap": "^0.8.19",
     "jsonwebtoken": "^9.0.2",
+    "mailparser": "^3.7.3",
     "mongoose": "^8.15.0",
+    "node-imap": "^0.9.6",
+    "nodemailer": "^7.0.3",
     "redis": "^5.1.0"
   },
   "devDependencies": {

@@ -11,6 +11,7 @@ const student = require('./routes/studentRoute');
 const parent = require("./routes/parentRoute");
 const account = require("./routes/accountRoute");
 const auth = require("./routes/authRoute");
+const enrollSchool = require("./routes/enrollSchoolRoute");
 
 // Khai báo dotenv
 dotenv.config();
@@ -34,6 +35,7 @@ app.use("/api/student",student);
 app.use("/api/parent", parent);
 app.use("/api/account",account);
 app.use("/api/auth", auth);
+app.use("/api/enrollSchool",enrollSchool);
 
 // route test
 app.get('/', (req, res) => {
