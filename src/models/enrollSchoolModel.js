@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const enrollSchoolSchema = new mongoose.Schema(
   {
+    enrollCode: {type: String, required: true},
     studentName: { type: String, required: true },
     studentAge: { type: Number, required: true },
     studentDob: { type: Date, required: true },
