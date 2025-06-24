@@ -7,7 +7,7 @@ const { createEnrollSchool, processEnrollSchoolAll } = require('../controllers/e
 
 // router.get("/:id", verifyToken,  findIdGeneric(Parent, ["student"]));
 router.post("/",createEnrollSchool);
-router.put('/process-enroll', processEnrollSchoolAll);
+router.post('/process-enroll', processEnrollSchoolAll);
 
 
 module.exports = router;
