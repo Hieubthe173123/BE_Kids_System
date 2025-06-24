@@ -144,7 +144,7 @@ exports.verifyOTP = async (req, res, next) => {
         let matchedUser = null;
         for (const user of users) {
             if (user.exprire_in && new Date() < user.exprire_in) {
-                const isMatch = await bcrypt.compare(otp.toString(), user.otp);
+                const isMatch = await bcrypt.compare(OTPnumber.toString(), user.OTPnumber);
                 if (isMatch) {
                     matchedUser = user;
                     break;
