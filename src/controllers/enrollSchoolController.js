@@ -2,6 +2,7 @@ const { Model } = require("mongoose");
 const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS } = require('../constants/useConstants');
 const EnrollSChool = require('../models/enrollSchoolModel');
 const SMTP = require('../utils/stmpHepler');
+const IMAP = require("../utils/iMapHelper");
 const { SMTP_CONFIG, NOTIFICATION_SUBJECT } = require('../constants/mailConstants');
 
 exports.createEnrollSchool = async (req, res) => {
@@ -66,6 +67,38 @@ exports.createEnrollSchool = async (req, res) => {
 
         });
 
+    } catch (error) {
+        res.status(HTTP_STATUS.SERVER_ERROR).json({ message: error.message });
+    }
+}
+
+exports.processEnrollSchoolAll = async (req, res) => {
+    try {
+        const enrollSchoolList = await EnrollSChool.updateMany({state: "Chờ xác nhận"}, {state:"Chờ xử lý"});
+        if(enrollSchoolList.modifiedCount < 1){
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
+                message: `${RESPONSE_MESSAGE.NOT_FOUND} có trạng thái là Chờ xác nhận`
+            });
+        }
+        
+        res.status(HTTP_STATUS.UPDATED).json({
+            message: RESPONSE_MESSAGE.UPDATED,
+            data: enrollSchoolList,
+        });
+        setImmediate( async () => {
+            
+            // const waitProcessingList = await EnrollSChool.find({state: "Chờ xử lý"});
+            // for( const item of waitProcessingList){
+            //     const {email, studentName, parentName} = item;
+            //     console.log("🚀 ~ setImmediate ~ email:", email);
+            //     console.log("🚀 ~ setImmediate ~ parentName:", parentName);
+            //     console.log("🚀 ~ setImmediate ~ username:", studentName);
+
+
+            // }
+        })
+
+        
     } catch (error) {
         res.status(HTTP_STATUS.SERVER_ERROR).json({ message: error.message });
     }
