@@ -7,6 +7,8 @@ const enrollSchoolSchema = new mongoose.Schema(
     studentDob: { type: Date, required: true },
     studentGender: { type: String, enum: ["male", "female", "other"] },
     parentName: { type: String, required: true },
+    parentGender: {type: String, required: true},
+    parentDob: {type: Date, required: true},
     IDCard: { type: String, required: true },
     address: { type: String, required: true },
     phoneNumber: { type: String, required: true },

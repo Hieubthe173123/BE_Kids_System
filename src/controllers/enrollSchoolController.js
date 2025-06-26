@@ -1,14 +1,22 @@
 const { Model } = require("mongoose");
-const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS, STATE } = require('../constants/useConstants');
-const EnrollSChool = require('../models/enrollSchoolModel');
-const SMTP = require('../utils/stmpHepler');
-const IMAP = require("../utils/iMapHelper");
-const { SMTP_CONFIG, NOTIFICATION_SUBJECT, IMAP_CONFIG, ERROR_SENT_MAIL } = require('../constants/mailConstants');
 const moment = require('moment'); 
+const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS, STATE } = require('../constants/useConstants');
+const { SMTP_CONFIG, NOTIFICATION_SUBJECT, IMAP_CONFIG, ERROR_SENT_MAIL } = require('../constants/mailConstants');
+
+const EnrollSChool = require('../models/enrollSchoolModel');
+const Parent = require('../models/parentModel');
+const Student = require('../models/studentModel');
+
+const SMTP = require('../helper/stmpHepler');
+const IMAP = require("../helper/iMapHelper");
+const UPLOADIMAGE = require("../helper/uploadImageHelper");
+
 
 exports.createEnrollSchool = async (req, res) => {
     try {
-        const { studentName, studentAge, studentDob, parentName, IDCard, address, phoneNumber, email, relationship, reason, note } = req.body;
+        const { studentName, studentAge, studentDob, studentGender,
+               parentName, parentDob, IDCard, address, phoneNumber, 
+               email, relationship, reason, note } = req.body;
         const today = moment().format('YYYYMMDD'); 
         const prefix = `STUEN-${today}`;
         const countToday = await EnrollSChool.countDocuments({
@@ -21,7 +29,10 @@ exports.createEnrollSchool = async (req, res) => {
             studentName,
             studentAge,
             studentDob,
+            studentGender,
             parentName,
+            parentGender,
+            parentDob,
             IDCard,
             address,
             phoneNumber,
@@ -207,10 +218,38 @@ exports.processEnrollSchoolAll = async (req, res) => {
                         }
                     );
                     }else{
-                        const attachments = attachments[0];
-                        const { studentName, studentAge, studentDob, note,
-                                parentName, IDCard, phoneNumber, address, email} = enroll;
-                                
+                        const { studentName, studentAge, studentDob, note ,studentGender, 
+                            parentName, parentDob, parentGender,  IDCard, phoneNumber, address, email,   } = enroll;
+                            console.log("attachments",attachments);
+                        const imageUrl = await UPLOADIMAGE.uploadBuffer(
+                            attachments[0].content,
+                            attachments[0].contentType
+                        ); 
+                        console.log("🚀 ~ setImmediate ~ imageUrl:", imageUrl);
+
+                        const newDataStu = new Student({
+                            fullName: studentName,
+                            gender: studentGender,
+                            dob: studentDob,
+                            address: address,
+                            age: studentAge,
+                            image: imageUrl,
+                            note: note
+                        });
+                        const newStudent = await newDataStu.save();
+
+                        const newDataPa = new Parent({
+                            fullName: parentName,
+                            dob: parentDob,
+                            gender: parentGender,
+                            phoneNumber: phoneNumber,
+                            email: email,
+                            IDCard: IDCard,
+                            address: address,
+                            // account: 
+                            student: newStudent._id
+                        })
+                        const newParent = await newDataPa.save();
                     }
                 }
                 else {

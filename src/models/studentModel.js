@@ -7,7 +7,9 @@ const StudentSchema = new mongoose.Schema(
     address: { type: String, required: true },
     status: { type: Boolean, default: true},
     age: {type: Number, required: true},
-    image: { type: String}
+    image: { type: String},
+    note: {type: String},
+    
   },
   { timestamps: true, versionKey: false }
 );

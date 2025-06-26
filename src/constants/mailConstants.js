@@ -20,6 +20,10 @@ const IMAP_CONFIG = {
   tlsOptions: { rejectUnauthorized: false }
 
 }
+const IMAGE_CONFIG = {
+  folder: "student_images",
+  filename: "student_upload_images" 
+}
 const NOTIFICATION_SUBJECT = "XÁC NHẬN NHẬP HỌC";
 const ERROR_SENT_MAIL = "XÁC NHẬN NHẬP HỌC SAI THÔNG TIN";
 
@@ -27,5 +31,6 @@ module.exports = {
   SMTP_CONFIG,
   NOTIFICATION_SUBJECT,
   IMAP_CONFIG,
-  ERROR_SENT_MAIL
+  ERROR_SENT_MAIL,
+  IMAGE_CONFIG
 };
