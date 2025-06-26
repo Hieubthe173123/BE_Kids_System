@@ -13,6 +13,7 @@
     "bcryptjs": "^3.0.2",
     "be_kids_system": "file:",
     "cloudinary": "^2.7.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "env": "^0.0.2",

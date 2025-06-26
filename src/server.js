@@ -5,7 +5,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./configs/dbConfig');
 const { connectRedis } = require("./configs/redisConfig")
-
+const cookieParser = require("cookie-parser");
 // Khai báo routes
 const student = require('./routes/studentRoute');
 const parent = require("./routes/parentRoute");
@@ -20,9 +20,13 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(morgan('dev')); 
+app.use(cookieParser());
 
 // Connect to MongoDB
 connectDB();
