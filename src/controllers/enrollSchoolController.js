@@ -1,21 +1,23 @@
 const { Model } = require("mongoose");
 const moment = require('moment'); 
 const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS, STATE } = require('../constants/useConstants');
-const { SMTP_CONFIG, NOTIFICATION_SUBJECT, IMAP_CONFIG, ERROR_SENT_MAIL } = require('../constants/mailConstants');
+const { SMTP_CONFIG, NOTIFICATION_SUBJECT, IMAP_CONFIG, ERROR_SENT_MAIL, PASSWORD_DEFAULT } = require('../constants/mailConstants');
 
 const EnrollSChool = require('../models/enrollSchoolModel');
 const Parent = require('../models/parentModel');
 const Student = require('../models/studentModel');
+const Account = require("../models/accountModel");
 
 const SMTP = require('../helper/stmpHepler');
 const IMAP = require("../helper/iMapHelper");
 const UPLOADIMAGE = require("../helper/uploadImageHelper");
+const { generateUsername } = require("../helper/index");
 
 
 exports.createEnrollSchool = async (req, res) => {
     try {
         const { studentName, studentAge, studentDob, studentGender,
-               parentName, parentDob, IDCard, address, phoneNumber, 
+               parentName, parentDob, parentGender, IDCard, address, phoneNumber, 
                email, relationship, reason, note } = req.body;
         const today = moment().format('YYYYMMDD'); 
         const prefix = `STUEN-${today}`;
@@ -219,13 +221,11 @@ exports.processEnrollSchoolAll = async (req, res) => {
                     );
                     }else{
                         const { studentName, studentAge, studentDob, note ,studentGender, 
-                            parentName, parentDob, parentGender,  IDCard, phoneNumber, address, email,   } = enroll;
-                            console.log("attachments",attachments);
+                            parentName, parentDob, parentGender,  IDCard, phoneNumber, address, email } = enroll;
                         const imageUrl = await UPLOADIMAGE.uploadBuffer(
                             attachments[0].content,
                             attachments[0].contentType
                         ); 
-                        console.log("🚀 ~ setImmediate ~ imageUrl:", imageUrl);
 
                         const newDataStu = new Student({
                             fullName: studentName,
@@ -237,30 +237,35 @@ exports.processEnrollSchoolAll = async (req, res) => {
                             note: note
                         });
                         const newStudent = await newDataStu.save();
+                        const parent = await Parent.findOne({"IDCard": IDCard}).populate("account", "username");
+                        if(!parent){
+                            const username = await generateUsername(parentName);
+                            const newDataAcc = new Account({
+                                username: username,
+                                password: PASSWORD_DEFAULT,
+                            });
+                            const newAcc = await newDataAcc.save();
 
-                        const newDataPa = new Parent({
-                            fullName: parentName,
-                            dob: parentDob,
-                            gender: parentGender,
-                            phoneNumber: phoneNumber,
-                            email: email,
-                            IDCard: IDCard,
-                            address: address,
-                            // account: 
-                            student: newStudent._id
-                        })
-                        const newParent = await newDataPa.save();
-                    }
-                }
-                else {
-                    mailSent.send(
-                        email,
-                        '',
-                        ERROR_SENT_MAIL,
-                        `
-                        <!DOCTYPE html>
+
+                            const newDataPa = new Parent({
+                                fullName: parentName,
+                                dob: parentDob,
+                                gender: parentGender,
+                                phoneNumber: phoneNumber,
+                                email: email,
+                                IDCard: IDCard,
+                                address: address,
+                                account: newAcc._id,
+                                student: newStudent._id
+                            })
+                            const newParent = await newDataPa.save();
+                            mailSent.send(
+                                email,
+                                '',
+                                "THÔNG BÁO NHẬP HỌC THÀNH CÔNG",
+                                `
+                            <!DOCTYPE html>
                             <html lang="vi">
-
                             <head>
                                 <meta charset="UTF-8" />
                                 <style>
@@ -281,12 +286,20 @@ exports.processEnrollSchoolAll = async (req, res) => {
                                     }
 
                                     h2 {
-                                        color: #2c3e50;
+                                        color: #27ae60;
                                     }
 
                                     p {
                                         font-size: 16px;
                                         line-height: 1.5;
+                                    }
+
+                                    .account-info {
+                                        background-color: #ecf9f1;
+                                        padding: 12px;
+                                        border-radius: 6px;
+                                        margin: 16px 0;
+                                        font-weight: bold;
                                     }
 
                                     .footer {
@@ -296,22 +309,26 @@ exports.processEnrollSchoolAll = async (req, res) => {
                                     }
                                 </style>
                             </head>
-
                             <body>
                                 <div class="email-container">
-                                    <h2>Thư thông báo từ Nhà trường</h2>
+                                    <h2>Thông báo nhập học thành công</h2>
                                     <p>Kính gửi Anh/Chị,</p>
                                     <p>
-                                        Nhà trường đã nhận được email xác nhận nhập học của Anh/Chị. Tuy nhiên, nội dung email 
-                                        không đúng định dạng yêu cầu.
+                                        Nhà trường xin trân trọng thông báo rằng hồ sơ nhập học của Anh/Chị cho học sinh
+                                        đã được tiếp nhận và xác nhận thành công.
                                     </p>
                                     <p>
-                                        Anh/Chị vui lòng gửi lại email xác nhận nhập học đúng định dạng
-                                        <strong><span style="color: red;">"XÁC NHẬN NHẬP HỌC - Mã Đăng Kí"</span></strong>
-                                        để đảm bảo quá trình nhập học được diễn ra thuận lợi.
+                                        Dưới đây là thông tin tài khoản để truy cập vào hệ thống của Nhà trường:
+                                    </p>
+                                    <div class="account-info">
+                                        Tên đăng nhập: <span style="color: #2980b9;">${username}</span><br />
+                                        Mật khẩu tạm thời: <span style="color: #c0392b;">${PASSWORD_DEFAULT}</span>
+                                    </div>
+                                    <p>
+                                        Vui lòng đăng nhập và thay đổi mật khẩu sau lần đăng nhập đầu tiên để đảm bảo bảo mật thông tin.
                                     </p>
                                     <p>
-                                        Xin chân thành cảm ơn sự hợp tác của Anh/Chị!
+                                        Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với phòng Tuyển sinh để được hỗ trợ.
                                     </p>
                                     <p>
                                         Trân trọng,<br />
@@ -323,16 +340,112 @@ exports.processEnrollSchoolAll = async (req, res) => {
                                     </div>
                                 </div>
                             </body>
-
                             </html>
-                        `,
-                        '',
-                        () => {
-                            console.log(`✅ Mail gửi thành công đến email : ${email}`);
-                        }
-                    );
-                }
+                            `,
+                                '',
+                                () => {
+                                    console.log(`✅ Mail gửi thành công đến email: ${email}`);
+                                }
+                            );
+                        } else {
+                            const username = parent.account.username;
+                            await Parent.updateOne(
+                                { _id: parent._id },
+                                { $push: { student: newStudent._id } }
+                            );
+                            mailSent.send(
+                                email,
+                                '',
+                                "THÔNG BÁO NHẬP HỌC THÀNH CÔNG",
+                                `
+                                <!DOCTYPE html>
+                                <html lang="vi">
+                                <head>
+                                    <meta charset="UTF-8" />
+                                    <style>
+                                        body {
+                                            font-family: Arial, sans-serif;
+                                            background-color: #f4f6f8;
+                                            padding: 20px;
+                                            color: #333;
+                                        }
 
+                                        .email-container {
+                                            background-color: #ffffff;
+                                            border-radius: 8px;
+                                            padding: 24px;
+                                            max-width: 600px;
+                                            margin: auto;
+                                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                                        }
+
+                                        h2 {
+                                            color: #27ae60;
+                                        }
+
+                                        p {
+                                            font-size: 16px;
+                                            line-height: 1.5;
+                                        }
+
+                                        .account-info {
+                                            background-color: #ecf9f1;
+                                            padding: 12px;
+                                            border-radius: 6px;
+                                            margin: 16px 0;
+                                            font-weight: bold;
+                                        }
+
+                                        .footer {
+                                            margin-top: 32px;
+                                            font-size: 14px;
+                                            color: #888;
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="email-container">
+                                        <h2>Thông báo nhập học thành công</h2>
+                                        <p>Kính gửi Anh/Chị,</p>
+                                        <p>
+                                            Nhà trường xin trân trọng thông báo rằng hồ sơ nhập học của Anh/Chị cho học sinh
+                                            đã được tiếp nhận và xác nhận thành công.
+                                        </p>
+                                        <p>
+                                            Tài khoản hiện tại của Anh/Chị đã được ghi nhận vào hệ thống và có thể sử dụng để theo dõi quá trình học tập của học sinh.
+                                        </p>
+                                        <div class="account-info">
+                                            Tên đăng nhập: <span style="color: #2980b9;">${username}</span>
+                                        </div>
+                                        <p>
+                                            Nếu Anh/Chị quên mật khẩu, có thể sử dụng chức năng "Quên mật khẩu" để đặt lại.
+                                        </p>
+                                        <p>
+                                            Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với phòng Tuyển sinh để được hỗ trợ.
+                                        </p>
+                                        <p>
+                                            Trân trọng,<br />
+                                            <strong>Phòng Tuyển sinh</strong><br />
+                                            Nhà trường
+                                        </p>
+                                        <div class="footer">
+                                            (Email này được gửi tự động, vui lòng không phản hồi)
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>
+                                `,
+                                '',
+                                () => {
+                                    console.log(`✅ Mail gửi thành công đến email: ${email}`);
+                                }
+                            );
+
+                        }
+
+                        await EnrollSChool.updateOne({ _id: enroll._id }, { state: STATE.FINISHED });
+                    }
+                }
             }
             await EnrollSChool.updateMany({ state: STATE.WAITING_PROCESSING }, { state: STATE.WAITING_CONFIRM });
 
