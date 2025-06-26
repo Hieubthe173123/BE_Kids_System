@@ -23,4 +23,27 @@ async function findAccountByEmail(email) {
     return null;
 }
 
-exports.findAccountByEmail = findAccountByEmail;
+async function generateUsername(fullName) {
+    const words = fullName
+        .normalize("NFD")               
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .split(/\s+/);                  
+
+    if (words.length === 0) return "";
+
+    const lastName = words[words.length - 1].toLowerCase(); 
+    const initials = words
+        .slice(0, words.length - 1)      
+        .map(word => word[0].toLowerCase())
+        .join("");
+
+    return `${lastName}${initials}`;    
+}
+
+
+module.exports = {
+    findAccountByEmail,
+    generateUsername
+};
+

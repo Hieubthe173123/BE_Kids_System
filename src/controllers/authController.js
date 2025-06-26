@@ -113,8 +113,6 @@ exports.getInformationAccount = async (req, res) => {
                 admin: "admin123",
             }
         }
-      
-        
         return res.status(HTTP_STATUS.OK).json(information);
 
     } catch (err) {
