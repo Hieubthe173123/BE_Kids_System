@@ -13,7 +13,6 @@ class CLOUDINARY_HELPER {
     }
 
     async uploadBuffer(buffer, contentType) {
-        console.log("🚀 ~ CLOUDINARY_HELPER ~ uploadBuffer ~ buffer:", buffer);
         const base64 = buffer.toString('base64');
         const dataUri = `data:${contentType};base64,${base64}`;
 

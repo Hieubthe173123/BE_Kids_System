@@ -222,7 +222,6 @@ exports.processEnrollSchoolAll = async (req, res) => {
                     }else{
                         const { studentName, studentAge, studentDob, note ,studentGender, 
                             parentName, parentDob, parentGender,  IDCard, phoneNumber, address, email } = enroll;
-                            console.log("attachments",attachments);
                         const imageUrl = await UPLOADIMAGE.uploadBuffer(
                             attachments[0].content,
                             attachments[0].contentType
@@ -239,7 +238,6 @@ exports.processEnrollSchoolAll = async (req, res) => {
                         });
                         const newStudent = await newDataStu.save();
                         const parent = await Parent.findOne({"IDCard": IDCard}).populate("account", "username");
-                        console.log("🚀 ~ setImmediate ~ parent:", parent)
                         if(!parent){
                             const username = await generateUsername(parentName);
                             const newDataAcc = new Account({
