@@ -197,7 +197,7 @@ exports.resetPassword = async (req, res) => {
         if (!result) return res.status(404).json({ message: "Account not found" });
 
         const { account } = result;
-        account.password = await bcrypt.hash(newPassword, 10);
+        account.password = newPassword;
         await account.save();
 
         return res.json({ message: "Password changed successfully!" });
