@@ -1,5 +1,5 @@
 // const Parent = require("../models/Parent");
-// const Teacher = require("../models/Teacher");
+const Teacher = require("../models/teacherModel");
 // const Principal = require("../models/Principal");
 // const Admin = require("../models/Admin");
 
@@ -8,7 +8,7 @@ const parentModel = require("../models/parentModel");
 async function findAccountByEmail(email) {
     const models = [
         { model: parentModel, role: "parent" },
-        // { model: Teacher, role: "teacher" },
+        { model: Teacher, role: "teacher" },
         // { model: Principal, role: "principal" },
         // { model: Admin, role: "admin" },
     ];
