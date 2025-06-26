@@ -12,6 +12,8 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "be_kids_system": "file:",
+    "cloudinary": "^2.7.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "env": "^0.0.2",
@@ -20,6 +22,7 @@
     "imap": "^0.8.19",
     "jsonwebtoken": "^9.0.2",
     "mailparser": "^3.7.3",
+    "moment": "^2.30.1",
     "mongoose": "^8.15.0",
     "node-imap": "^0.9.6",
     "nodemailer": "^7.0.3",

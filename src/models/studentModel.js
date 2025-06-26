@@ -6,7 +6,10 @@ const StudentSchema = new mongoose.Schema(
     gender: { type: String, enum: ["male", "female", "other"] },
     address: { type: String, required: true },
     status: { type: Boolean, default: true},
-    image: { type: String}
+    age: {type: Number, required: true},
+    image: { type: String},
+    note: {type: String},
+    
   },
   { timestamps: true, versionKey: false }
 );

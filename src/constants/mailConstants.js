@@ -1,16 +1,36 @@
+const dotenv = require('dotenv');
+
 const SMTP_CONFIG = {
-  "user": "kidmanagesystem.2025@gmail.com",
-  "password": "wyef zihr peyj dpvz",
-  "host": "smtp.gmail.com",
-  "port": 587,
-  "tls": true,
-  "maxConnections": 3,
-  "pool": true,
-  "from": "kidmanagesystem.2025 <kidmanagesystem.2025@gmail.com>"
+  "user": process.env.EMAIL_USER,
+  "password": process.env.EMAIL_PASS,
+  "host": process.env.HOST_SMTP,
+  "port": process.env.PORT_SMTP,
+  "tls": process.env.TLS_SMTP,
+  "maxConnections": process.env.MAXCONNECTIONS,
+  "pool": process.env.POOL,
+  "from": process.env.FROM_STMP
+}
+
+const IMAP_CONFIG = {
+  "user": process.env.EMAIL_USER,
+  "password": process.env.EMAIL_PASS,
+  "host": process.env.HOST_IMAP,
+  "port": process.env.PORT_IMAP,
+  "tls": process.env.TLS,
+  tlsOptions: { rejectUnauthorized: false }
+
+}
+const IMAGE_CONFIG = {
+  folder: "student_images",
+  filename: "student_upload_images" 
 }
 const NOTIFICATION_SUBJECT = "XÁC NHẬN NHẬP HỌC";
+const ERROR_SENT_MAIL = "XÁC NHẬN NHẬP HỌC SAI THÔNG TIN";
 
 module.exports = {
- SMTP_CONFIG,
- NOTIFICATION_SUBJECT
+  SMTP_CONFIG,
+  NOTIFICATION_SUBJECT,
+  IMAP_CONFIG,
+  ERROR_SENT_MAIL,
+  IMAGE_CONFIG
 };
