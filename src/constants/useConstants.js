@@ -38,8 +38,8 @@ const VALIDATION_CONSTANTS = {
 }
 
 const TOKEN = {
-    EXPIRESIN_TOKEN: '1d',
-    EXPIRESIN_REFESH_TOKEN: '1d',
+    EXPIRESIN_TOKEN: '1m',
+    EXPIRESIN_REFESH_TOKEN: '5m',
     EX: 7 * 24 * 60 * 60 
 }
 
