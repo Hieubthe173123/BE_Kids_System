@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            padding: 20px;
+            color: #333;
+        }
+
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #27ae60;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .account-info {
+            background-color: #ecf9f1;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <h2>Thông báo nhập học thành công</h2>
+        <p>Kính gửi Anh/Chị,</p>
+        <p>
+            Nhà trường xin trân trọng thông báo rằng hồ sơ nhập học của Anh/Chị cho học sinh
+            đã được tiếp nhận và xác nhận thành công.
+        </p>
+        <p>
+            Dưới đây là thông tin tài khoản để truy cập vào hệ thống của Nhà trường:
+        </p>
+        <div class="account-info">
+            Tên đăng nhập: <span style="color: #2980b9;"><%= username %></span><br />
+            Mật khẩu tạm thời: <span style="color: #c0392b;"><%= password %></span>
+        </div>
+        <p>
+            Vui lòng đăng nhập và thay đổi mật khẩu sau lần đăng nhập đầu tiên để đảm bảo bảo mật thông tin.
+        </p>
+        <p>
+            Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với phòng Tuyển sinh để được hỗ trợ.
+        </p>
+        <p>
+            Trân trọng,<br />
+            <strong>Phòng Tuyển sinh</strong><br />
+            Nhà trường
+        </p>
+        <div class="footer">
+            (Email này được gửi tự động, vui lòng không phản hồi)
+        </div>
+    </div>
+</body>
+
+</html>

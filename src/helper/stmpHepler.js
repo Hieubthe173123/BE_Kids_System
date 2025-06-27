@@ -32,7 +32,6 @@ class SMTP_Helper {
         pass,
       }
     };
-    console.log('transport: ', this.transport);
 
     this.smtp = createTransport(this.transport);
   }
