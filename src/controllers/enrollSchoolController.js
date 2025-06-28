@@ -115,10 +115,10 @@ exports.processEnrollSchoolAll = async (req, res) => {
 
                 const enrollCode = subject.split(" - ")[1];
                 const email = from.value[0].address;
-                await EnrollSChool.updateOne({ enrollCode: enrollCode}, {state: STATE.WAITING_PROCESSING});
+                await EnrollSChool.updateOne({ enrollCode: enrollCode }, { state: STATE.WAITING_PROCESSING });
                 const enroll = await EnrollSChool.findOne({ enrollCode: enrollCode, state: STATE.WAITING_PROCESSING });
 
-                if ( subject && subject.toUpperCase() === `${NOTIFICATION_SUBJECT} - ${enrollCode}`) {
+                if (subject && subject.toUpperCase() === `${NOTIFICATION_SUBJECT} - ${enrollCode}`) {
                     if (attachments[0] === undefined) {
 
                         const htmlErrorPath = path.join(__dirname, '..', 'templates', 'mailErrorImage.ejs');
@@ -144,8 +144,16 @@ exports.processEnrollSchoolAll = async (req, res) => {
                             attachments[0].content,
                             attachments[0].contentType
                         );
+                        const today = moment().format('YY');
+                        const prefix = `STU-${today}`;
+                        const countToday = await Student.countDocuments({
+                            studentCode: { $regex: `^${prefix}` }
+                        });
+                        const paddedNumber = String(countToday + 1).padStart(3, '0'); 
+                        const studentCode = `${prefix}${paddedNumber}`;
 
                         const newDataStu = new Student({
+                            studentCode: studentCode,
                             fullName: studentName,
                             gender: studentGender,
                             dob: studentDob,
@@ -157,12 +165,15 @@ exports.processEnrollSchoolAll = async (req, res) => {
                         const newStudent = await newDataStu.save();
                         const parent = await Parent.findOne({ "IDCard": IDCard }).populate("account", "username");
                         if (!parent) {
-                            const username = await generateUsername(parentName);
+                            const baseUsername = await generateUsername(parentName); 
+                            const randomSuffix = Math.floor(10 + Math.random() * 90); 
+                            const username = `${baseUsername}${randomSuffix}`;
 
                             const htmlPathSuccessNoAcc = path.join(__dirname, '..', 'templates', 'mailSuccessNoAcc.ejs');
                             const htmlSuccessNoAcc = await ejs.renderFile(htmlPathSuccessNoAcc, {
                                 username: username,
-                                password: PASSWORD_DEFAULT
+                                password: PASSWORD_DEFAULT,
+                                studentCode: studentCode
                             });
 
                             const newDataAcc = new Account({
@@ -200,6 +211,7 @@ exports.processEnrollSchoolAll = async (req, res) => {
                             const htmlPathSuccessAcc = path.join(__dirname, '..', 'templates', 'mailSuccessAcc.ejs');
                             const htmlSuccessAcc = await ejs.renderFile(htmlPathSuccessAcc, {
                                 username: username,
+                                studentCode: studentCode
                             });
 
 
