@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const TeacherSchema = new mongoose.Schema(
     {
+        teacherCode: { type: String, required: true, unique: true },
         fullName: { type: String, required: true },
         dob: { type: Date, required: true },
         phoneNumber: { type: Number, required: true },
