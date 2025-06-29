@@ -5,6 +5,7 @@ const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS, TOKEN }
 const { redisClient } = require("../configs/redisConfig");
 const Account = require('../models/accountModel');
 const Parent = require('../models/parentModel');
+const Principal = require('../models/principalModel')
 const { sendOTPEmail } = require("../utils/emailsOTP");
 const { findAccountByEmail } = require("../helper");
 
@@ -13,8 +14,10 @@ const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET || "wdp_301";
 
 exports.loginAccount = async (req, res) => {
     try {
-       
+               console.log("🚀 ~ exports.loginAccount= ~ req.body:", req.body)
         const { username, password } = req.body;
+        console.log("🚀 ~ exports.loginAccount= ~ username, password:", username, password)
+
       
 
         if (!username || !password) {
@@ -44,7 +47,7 @@ exports.loginAccount = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "strict",
-            maxAge: 1000 * 60 * 1, // 1 phút
+            maxAge: 10000 * 60 * 1, // 1 phút
           });
 
         const refreshToken = jwt.sign({ id: account._id }, ACCESS_SECRET, { expiresIn: TOKEN.EXPIRESIN_REFESH_TOKEN });
@@ -100,18 +103,12 @@ exports.getInformationAccount = async (req, res) => {
         let information = {};
 
         if (role === USER_ROLES.PARENT) {
-            information = await Parent.findOne({ account: accountId }).populate("account","role");
-           
-          
+            information = await Parent.findOne({ account: accountId }).populate("account", "role");
 
         } else if (role === USER_ROLES.TEACHER) {
-            //  information = await Teacher.findOne({ account: accountId });
-        } else if (role === USER_ROLES.PRINCIPAL) {
-            //  information = await Principal.findOne({ account: accountId });
+            information = await Teacher.findOne({ account: accountId }).populate("account", "role");
         } else {
-            information = {
-                admin: "admin123",
-            }
+            information = await Principal.findOne({ account: accountId }).populate("account", "role");
         }
         return res.status(HTTP_STATUS.OK).json(information);
 
