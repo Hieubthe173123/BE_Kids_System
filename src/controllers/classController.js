@@ -102,6 +102,49 @@ exports.getClassBySchoolYear = async (req, res) => {
     }
 };
 
+// exports.getAllClassBySchoolYear = async (req, res) => {
+//     try {
+//         const { year } = req.params;
+
+//         const classes = await Class.find({
+//             schoolYear: year
+//         }).select("_id schoolYear className status");
+
+//         if (!classes || classes.length === 0) {
+//             return res.status(HTTP_STATUS.NOT_FOUND).json({
+//                 message: `Không tìm thấy lớp nào cho năm học ${year}`
+//             });
+//         }
+
+//         return res.status(HTTP_STATUS.OK).json({ data: classes });
+//     } catch (err) {
+//         return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
+//     }
+// };
+
+exports.getAllClassBySchoolYear = async (req, res) => {
+    try {
+        const { year } = req.params;
+
+        const classes = await Class.find({ schoolYear: year })
+            .populate('teacher')
+            .populate('students')
+            .exec();
+
+        if (!classes || classes.length === 0) {
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
+                message: `Không tìm thấy lớp nào cho năm học ${year}`
+            });
+        }
+
+        return res.status(HTTP_STATUS.OK).json({ data: classes });
+    } catch (err) {
+        return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
+    }
+};
+
+
+
 
 exports.getAllSchoolYears = async (req, res) => {
     try {

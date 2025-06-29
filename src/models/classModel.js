@@ -6,6 +6,7 @@ const ClassSchema = new mongoose.Schema(
         schoolYear: { type: String },
         className: { type: String },
         classAge: { type: String },
+        room: { type: mongoose.Types.ObjectId, ref: "Room" },
         room: { type: String },
         status: { type: Boolean, default: true },
     },

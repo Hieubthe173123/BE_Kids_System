@@ -16,12 +16,14 @@ const {
     getClassByStatus,
     getAllSchoolYears,
     getAvailableStudents,
-    getAvailableTeachers
+    getAvailableTeachers,
+    getAllClassBySchoolYear
 } = require('../controllers/classController');
 
 // ===== STATIC ROUTES FIRST =====
 router.get('/school-year', getAllSchoolYears);
 router.get('/school-year/:year', getClassBySchoolYear);
+router.get('/school-year/:year/all', getAllClassBySchoolYear);
 router.get('/available-students', getAvailableStudents);
 router.get('/available-teachers', getAvailableTeachers);
 router.get('/status/:status', getClassByStatus);
