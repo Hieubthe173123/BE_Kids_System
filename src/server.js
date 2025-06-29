@@ -12,6 +12,7 @@ const parent = require("./routes/parentRoute");
 const account = require("./routes/accountRoute");
 const auth = require("./routes/authRoute");
 const enrollSchool = require("./routes/enrollSchoolRoute");
+const weeklyMenu = require("./routes/menuRoute");
 
 // Khai báo dotenv
 dotenv.config();
@@ -40,6 +41,7 @@ app.use("/api/parent", parent);
 app.use("/api/account",account);
 app.use("/api/auth", auth);
 app.use("/api/enrollSchool",enrollSchool);
+app.use("/api/weeklyMenu", weeklyMenu);
 
 // route test
 app.get('/', (req, res) => {

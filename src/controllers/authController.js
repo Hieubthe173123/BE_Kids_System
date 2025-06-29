@@ -13,8 +13,10 @@ const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET || "wdp_301";
 
 exports.loginAccount = async (req, res) => {
     try {
-       
+               console.log("🚀 ~ exports.loginAccount= ~ req.body:", req.body)
         const { username, password } = req.body;
+        console.log("🚀 ~ exports.loginAccount= ~ username, password:", username, password)
+
       
 
         if (!username || !password) {
@@ -44,7 +46,7 @@ exports.loginAccount = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "strict",
-            maxAge: 1000 * 60 * 1, // 1 phút
+            maxAge: 10000 * 60 * 1, // 1 phút
           });
 
         const refreshToken = jwt.sign({ id: account._id }, ACCESS_SECRET, { expiresIn: TOKEN.EXPIRESIN_REFESH_TOKEN });
