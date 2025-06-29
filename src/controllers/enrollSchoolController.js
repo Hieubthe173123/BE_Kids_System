@@ -85,10 +85,13 @@ exports.createEnrollSchool = async (req, res) => {
 
 exports.processEnrollSchoolAll = async (req, res) => {
     try {
-        const enrollSchoolList = await EnrollSChool.find({ state: STATE.WAITING_CONFIRM });
+        const enrollSchoolList = await EnrollSChool.find({
+            state: { $in: [STATE.WAITING_CONFIRM, STATE.ERROR] }
+        });
+
         if (enrollSchoolList.length < 1) {
             return res.status(HTTP_STATUS.NOT_FOUND).json({
-                message: `${RESPONSE_MESSAGE.NOT_FOUND} có trạng thái là Chờ xác nhận`
+                message: `${RESPONSE_MESSAGE.NOT_FOUND} có trạng thái là Chờ xác nhận hoặc Xử lý lỗi`
             });
         }
 
@@ -244,3 +247,4 @@ exports.processEnrollSchoolAll = async (req, res) => {
         res.status(HTTP_STATUS.SERVER_ERROR).json({ message: error.message });
     }
 }
+
