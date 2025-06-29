@@ -12,6 +12,8 @@ const parent = require("./routes/parentRoute");
 const account = require("./routes/accountRoute");
 const auth = require("./routes/authRoute");
 const enrollSchool = require("./routes/enrollSchoolRoute");
+
+const weeklyMenu = require("./routes/menuRoute");
 const classRoute = require("./routes/classRoute");
 
 // Khai báo dotenv
@@ -40,6 +42,8 @@ app.use("/api/student", student);
 app.use("/api/parent", parent);
 app.use("/api/account", account);
 app.use("/api/auth", auth);
+
+app.use("/api/weeklyMenu", weeklyMenu);
 app.use("/api/enrollSchool", enrollSchool);
 app.use("/api/class", classRoute)
 
