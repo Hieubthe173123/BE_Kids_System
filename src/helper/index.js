@@ -1,5 +1,5 @@
 // const Parent = require("../models/Parent");
-// const Teacher = require("../models/Teacher");
+const Teacher = require("../models/teacherModel");
 // const Principal = require("../models/Principal");
 // const Admin = require("../models/Admin");
 
@@ -8,7 +8,7 @@ const parentModel = require("../models/parentModel");
 async function findAccountByEmail(email) {
     const models = [
         { model: parentModel, role: "parent" },
-        // { model: Teacher, role: "teacher" },
+        { model: Teacher, role: "teacher" },
         // { model: Principal, role: "principal" },
         // { model: Admin, role: "admin" },
     ];
@@ -23,4 +23,27 @@ async function findAccountByEmail(email) {
     return null;
 }
 
-exports.findAccountByEmail = findAccountByEmail;
+async function generateUsername(fullName) {
+    const words = fullName
+        .normalize("NFD")               
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .split(/\s+/);                  
+
+    if (words.length === 0) return "";
+
+    const lastName = words[words.length - 1].toLowerCase(); 
+    const initials = words
+        .slice(0, words.length - 1)      
+        .map(word => word[0].toLowerCase())
+        .join("");
+
+    return `${lastName}${initials}`;    
+}
+
+
+module.exports = {
+    findAccountByEmail,
+    generateUsername
+};
+
