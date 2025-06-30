@@ -10,12 +10,14 @@ const cookieParser = require("cookie-parser");
 const student = require('./routes/studentRoute');
 const parent = require("./routes/parentRoute");
 const account = require("./routes/accountRoute");
+
 const auth = require("./routes/authRoute");
 const enrollSchool = require("./routes/enrollSchoolRoute");
-
 const weeklyMenu = require("./routes/menuRoute");
+
 const classRoute = require("./routes/classRoute");
 const roomRoute = require("./routes/roomRoute");
+const curriculum = require("./routes/curriculumRoute");
 // Khai báo dotenv
 dotenv.config();
 
@@ -47,6 +49,8 @@ app.use("/api/weeklyMenu", weeklyMenu);
 app.use("/api/enrollSchool", enrollSchool);
 app.use("/api/class", classRoute)
 app.use("/api/room", roomRoute);
+
+app.use("/api/curriculum", curriculum);
 
 // route test
 app.get('/', (req, res) => {
