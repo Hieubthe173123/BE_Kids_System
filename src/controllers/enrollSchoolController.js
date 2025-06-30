@@ -4,18 +4,19 @@ const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
 
-const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS, STATE } = require('../constants/useConstants');
+const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS, STATE, NUMBER_STUDENT_IN_CLASS } = require('../constants/useConstants');
 const { SMTP_CONFIG, NOTIFICATION_SUBJECT, IMAP_CONFIG, ERROR_SENT_MAIL, PASSWORD_DEFAULT, SUCCESS_ENROLL } = require('../constants/mailConstants');
 
 const EnrollSChool = require('../models/enrollSchoolModel');
 const Parent = require('../models/parentModel');
 const Student = require('../models/studentModel');
-const Account = require("../models/accountModel");
+const Account = require('../models/accountModel');
+const Room = require('../models/roomModel');
 
 const SMTP = require('../helper/stmpHepler');
-const IMAP = require("../helper/iMapHelper");
-const UPLOADIMAGE = require("../helper/uploadImageHelper");
-const { generateUsername } = require("../helper/index");
+const IMAP = require('../helper/iMapHelper');
+const UPLOADIMAGE = require('../helper/uploadImageHelper');
+const { generateUsername } = require('../helper/index');
 
 
 exports.createEnrollSchool = async (req, res) => {
@@ -23,6 +24,14 @@ exports.createEnrollSchool = async (req, res) => {
         const { studentName, studentAge, studentDob, studentGender,
             parentName, parentDob, parentGender, IDCard, address, phoneNumber,
             email, relationship, reason, note } = req.body;
+
+        const numberStudentList = await Student.countDocuments({status: true});
+        const countRoom = await Room.countDocuments({status: true});
+        const numberAvailableList = countRoom * NUMBER_STUDENT_IN_CLASS;
+        if (numberStudentList + 8000 > numberAvailableList){
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: 'Số lượng học sinh đã vượt quá chỉ tiêu tuyển sinh'});
+        }
+        
         const today = moment().format('YYYYMMDD');
         const prefix = `STUEN-${today}`;
         const countToday = await EnrollSChool.countDocuments({

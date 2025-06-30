@@ -7,9 +7,10 @@ const findAllGeneric = (Model, populateFields = []) => async (req, res) => {
         const { fields, ...filters } = req.query;
 
         const selectFields = fields ? fields.split(',').join(' ') : '';
+        filters.status = true;
 
         let query = Model.find(filters).select(selectFields);
-
+        
         populateFields.forEach((field) => {
             query = query.populate(field);
         });
@@ -90,7 +91,7 @@ const deletedSoftGeneric = (Model) => async (req, res) => {
         if (!data) {
             return res.status(HTTP_STATUS.NOT_FOUND).json(RESPONSE_MESSAGE.NOT_FOUND);
         }
-        data.active = false;
+        data.status = false;
         await data.save();
         return res.status(HTTP_STATUS.OK).json(RESPONSE_MESSAGE.DELETED);
     } catch (err) {

@@ -6,9 +6,9 @@ const { findAllGeneric, findIdGeneric } = require('../controllers/useController'
 const EnrollSChool = require('../models/enrollSchoolModel');
 
 
-router.get("/", findAllGeneric(EnrollSChool));
+router.get("/", verifyToken, findAllGeneric(EnrollSChool));
 router.post("/", createEnrollSchool);
-router.post('/process-enroll', processEnrollSchoolAll);
+router.post('/process-enroll', verifyToken, processEnrollSchoolAll);
 
 
 module.exports = router;
