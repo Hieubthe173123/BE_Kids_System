@@ -6,7 +6,7 @@ const verifyToken = require("../middlewares/verifyToken");
 
 router.get("/", verifyToken, findAllGeneric(Account));
 router.get("/:id", verifyToken, findIdGeneric(Account));
-router.post("/register", verifyToken, createGeneric(Account, ['username']));
+router.post("/register", createGeneric(Account, ['username']));
 
 
 module.exports = router;

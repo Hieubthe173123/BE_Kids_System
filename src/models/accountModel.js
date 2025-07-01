@@ -10,6 +10,7 @@ const AccountSchema = new mongoose.Schema(
             type: String,
             required: true,
             enum: ["parent", "admin", "teacher", "principal"],
+            default: "parent"
         },
         status: { type: Boolean, default: true },
     },

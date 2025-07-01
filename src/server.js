@@ -5,13 +5,19 @@ const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./configs/dbConfig');
 const { connectRedis } = require("./configs/redisConfig")
-
+const cookieParser = require("cookie-parser");
 // Khai báo routes
 const student = require('./routes/studentRoute');
 const parent = require("./routes/parentRoute");
 const account = require("./routes/accountRoute");
-const auth = require("./routes/authRoute");
 
+const auth = require("./routes/authRoute");
+const enrollSchool = require("./routes/enrollSchoolRoute");
+const weeklyMenu = require("./routes/menuRoute");
+
+const classRoute = require("./routes/classRoute");
+const roomRoute = require("./routes/roomRoute");
+const curriculum = require("./routes/curriculumRoute");
 // Khai báo dotenv
 dotenv.config();
 
@@ -19,9 +25,13 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+}));
 app.use(express.json());
-app.use(morgan('dev')); 
+app.use(morgan('dev'));
+app.use(cookieParser());
 
 // Connect to MongoDB
 connectDB();
@@ -30,10 +40,17 @@ connectDB();
 connectRedis();
 
 // Sử dụng đường dẫn
-app.use("/api/student",student); 
+app.use("/api/student", student);
 app.use("/api/parent", parent);
-app.use("/api/account",account);
+app.use("/api/account", account);
 app.use("/api/auth", auth);
+
+app.use("/api/weeklyMenu", weeklyMenu);
+app.use("/api/enrollSchool", enrollSchool);
+app.use("/api/class", classRoute)
+app.use("/api/room", roomRoute);
+
+app.use("/api/curriculum", curriculum);
 
 // route test
 app.get('/', (req, res) => {

@@ -43,11 +43,21 @@ const TOKEN = {
     EX: 7 * 24 * 60 * 60 
 }
 
+const STATE = {
+    WAITING_CONFIRM: "Chờ xác nhận",
+    WAITING_PROCESSING: "Chờ xử lý",
+    FINISHED: "Hoàn thành",
+    ERROR: "Xử lý lỗi"
+}
+
+const NUMBER_STUDENT_IN_CLASS = 40;
 
 module.exports = {
   HTTP_STATUS,
   RESPONSE_MESSAGE,
   USER_ROLES,
   VALIDATION_CONSTANTS,
-  TOKEN
+  TOKEN,
+  STATE,
+  NUMBER_STUDENT_IN_CLASS
 };

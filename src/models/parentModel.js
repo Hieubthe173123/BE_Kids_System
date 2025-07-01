@@ -5,7 +5,7 @@ const ParentSchema = new mongoose.Schema(
     dob: { type: Date, required: true },
     phoneNumber: { type: Number, required: true},
     email: {type: String},
-    IDCard: {type: Number, required: true},
+    IDCard: {type: String, required: true},
     gender: { type: String, enum: ["male", "female", "other"] },
     account: { type: mongoose.Types.ObjectId, ref: "Account", required: true },
     student: [{ type: mongoose.Types.ObjectId, ref: "Student", required: true }],
