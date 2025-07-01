@@ -17,7 +17,8 @@ const {
     getAllSchoolYears,
     getAvailableStudents,
     getAvailableTeachers,
-    getAllClassBySchoolYear
+    getAllClassBySchoolYear,
+    createClassBatch
 } = require('../controllers/classController');
 
 // ===== STATIC ROUTES FIRST =====
@@ -32,6 +33,7 @@ router.get('/status/:status', getClassByStatus);
 router.get('/', getAllClasses);
 router.get('/:id', getClassById);
 router.post('/create', createClass);
+router.post('/create-batch', createClassBatch);
 router.put('/update/:id', updateClass);
 router.delete('/delete/:id', softDeleteClass);
 
