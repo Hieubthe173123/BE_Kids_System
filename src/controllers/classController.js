@@ -30,11 +30,11 @@ exports.createClass = async (req, res) => {
         const newClass = new Class({
             className,
             classAge,
-            room,
+            room: room || null,
             status,
-            teacher: null,
-            student: null,
-            schoolYear: null
+            teacher: [],
+            student: [],
+            schoolYear: req.body.schoolYear || new Date().getFullYear() + ' - ' + (new Date().getFullYear() + 1)
         });
 
         const saved = await newClass.save();
@@ -48,26 +48,35 @@ exports.createClass = async (req, res) => {
     }
 };
 
+
 exports.updateClass = async (req, res) => {
     try {
         const { id } = req.params;
         const { className, classAge, room, status } = req.body;
-        const existing = await Class.findById(id).populate('students teacher');
+        const existing = await Class.findById(id);
+
         if (!existing) {
             return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Không tìm thấy lớp' });
         }
         if (className && className !== existing.className) {
-            const classNameExists = await Class.findOne({ className });
+            const classNameExists = await Class.findOne({
+                className,
+                schoolYear: existing.schoolYear,
+                _id: { $ne: id }
+            });
             if (classNameExists) {
                 return res.status(HTTP_STATUS.BAD_REQUEST).json({
-                    message: `${className} đã tồn tại`
+                    message: `${className} đã tồn tại trong năm học này`
                 });
             }
         }
+
         existing.className = className || existing.className;
         existing.classAge = classAge || existing.classAge;
-        existing.room = room || existing.room;
-        existing.status = typeof status !== 'undefined' ? status : existing.status;
+        existing.status = typeof status === 'boolean' ? status : existing.status;
+        if (room !== undefined) {
+            existing.room = room || null;
+        }
 
         const updated = await existing.save();
 
@@ -102,26 +111,6 @@ exports.getClassBySchoolYear = async (req, res) => {
     }
 };
 
-// exports.getAllClassBySchoolYear = async (req, res) => {
-//     try {
-//         const { year } = req.params;
-
-//         const classes = await Class.find({
-//             schoolYear: year
-//         }).select("_id schoolYear className status");
-
-//         if (!classes || classes.length === 0) {
-//             return res.status(HTTP_STATUS.NOT_FOUND).json({
-//                 message: `Không tìm thấy lớp nào cho năm học ${year}`
-//             });
-//         }
-
-//         return res.status(HTTP_STATUS.OK).json({ data: classes });
-//     } catch (err) {
-//         return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
-//     }
-// };
-
 exports.getAllClassBySchoolYear = async (req, res) => {
     try {
         const { year } = req.params;
@@ -129,6 +118,7 @@ exports.getAllClassBySchoolYear = async (req, res) => {
         const classes = await Class.find({ schoolYear: year })
             .populate('teacher')
             .populate('students')
+            .populate('room', 'roomName')
             .exec();
 
         if (!classes || classes.length === 0) {
@@ -142,7 +132,6 @@ exports.getAllClassBySchoolYear = async (req, res) => {
         return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
     }
 };
-
 
 
 
@@ -296,10 +285,15 @@ exports.removeTeacherFromClass = async (req, res) => {
 exports.getAvailableStudents = async (req, res) => {
     try {
         const classes = await Class.find({}, 'students');
-        const assignedStudentIds = classes.flatMap(cls => cls.students.map(id => id.toString()));
+        const assignedStudentIds = classes.flatMap(cls =>
+            Array.isArray(cls.students)
+                ? cls.students.map(id => id?.toString()).filter(Boolean)
+                : []
+        );
 
         const availableStudents = await Student.find({
-            _id: { $nin: assignedStudentIds }
+            _id: { $nin: assignedStudentIds },
+            status: true
         }).select('studentCode fullName dob');
 
         res.status(200).json(availableStudents);
@@ -309,13 +303,20 @@ exports.getAvailableStudents = async (req, res) => {
     }
 };
 
+
+
 exports.getAvailableTeachers = async (req, res) => {
     try {
         const classes = await Class.find({}, 'teacher');
-        const assignedTeacherIds = classes.flatMap(cls => cls.teacher.map(id => id.toString()));
+        const assignedTeacherIds = classes.flatMap(cls =>
+            Array.isArray(cls.teacher)
+                ? cls.teacher.map(id => id?.toString()).filter(Boolean)
+                : []
+        );
 
         const availableTeachers = await Teacher.find({
-            _id: { $nin: assignedTeacherIds }
+            _id: { $nin: assignedTeacherIds },
+            status: true
         }).select('fullName phoneNumber');
 
         res.status(200).json(availableTeachers);
@@ -323,5 +324,24 @@ exports.getAvailableTeachers = async (req, res) => {
         console.error("Error fetching available teachers:", error);
         res.status(500).json({ error: "Server error" });
     }
+};
+
+
+exports.createClassBatch = async (req, res) => {
+    const { classes } = req.body;
+
+    if (!Array.isArray(classes) || classes.length === 0) {
+        return res.status(400).json({ message: 'Invalid class data' });
+    }
+
+    try {
+        const createdClasses = await Class.insertMany(classes);
+        return res.status(201).json(createdClasses);
+    } catch (error) {
+        console.error("Error creating class batch:", error.message);
+        return res.status(500).json({ message: 'Server error' });
+    }
 }
+
+
 
