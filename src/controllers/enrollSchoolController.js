@@ -25,13 +25,13 @@ exports.createEnrollSchool = async (req, res) => {
             parentName, parentDob, parentGender, IDCard, address, phoneNumber,
             email, relationship, reason, note } = req.body;
 
-        const numberStudentList = await Student.countDocuments({status: true});
-        const countRoom = await Room.countDocuments({status: true});
+        const numberStudentList = await Student.countDocuments({ status: true });
+        const countRoom = await Room.countDocuments({ status: true });
         const numberAvailableList = countRoom * NUMBER_STUDENT_IN_CLASS;
-        if (numberStudentList + 8000 > numberAvailableList){
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: 'Số lượng học sinh đã vượt quá chỉ tiêu tuyển sinh'});
+        if (numberStudentList > numberAvailableList) {
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Số lượng học sinh đã vượt quá chỉ tiêu tuyển sinh' });
         }
-        
+
         const today = moment().format('YYYYMMDD');
         const prefix = `STUEN-${today}`;
         const countToday = await EnrollSChool.countDocuments({
@@ -161,7 +161,7 @@ exports.processEnrollSchoolAll = async (req, res) => {
                         const countToday = await Student.countDocuments({
                             studentCode: { $regex: `^${prefix}` }
                         });
-                        const paddedNumber = String(countToday + 1).padStart(3, '0'); 
+                        const paddedNumber = String(countToday + 1).padStart(3, '0');
                         const studentCode = `${prefix}${paddedNumber}`;
 
                         const newDataStu = new Student({
@@ -177,8 +177,8 @@ exports.processEnrollSchoolAll = async (req, res) => {
                         const newStudent = await newDataStu.save();
                         const parent = await Parent.findOne({ "IDCard": IDCard }).populate("account", "username");
                         if (!parent) {
-                            const baseUsername = await generateUsername(parentName); 
-                            const randomSuffix = Math.floor(10 + Math.random() * 90); 
+                            const baseUsername = await generateUsername(parentName);
+                            const randomSuffix = Math.floor(10 + Math.random() * 90);
                             const username = `${baseUsername}${randomSuffix}`;
 
                             const htmlPathSuccessNoAcc = path.join(__dirname, '..', 'templates', 'mailSuccessNoAcc.ejs');
