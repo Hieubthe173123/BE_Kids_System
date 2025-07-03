@@ -28,7 +28,7 @@ exports.createEnrollSchool = async (req, res) => {
         const numberStudentList = await Student.countDocuments({ status: true });
         const countRoom = await Room.countDocuments({ status: true });
         const numberAvailableList = countRoom * NUMBER_STUDENT_IN_CLASS;
-        if (numberStudentList + 8000 > numberAvailableList) {
+        if (numberStudentList > numberAvailableList) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Số lượng học sinh đã vượt quá chỉ tiêu tuyển sinh' });
         }
 
