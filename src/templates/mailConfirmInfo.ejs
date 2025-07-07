@@ -3,69 +3,194 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
         }
 
-        .container {
+        .email-container {
             max-width: 600px;
-            margin: auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+            border-top: 6px solid #e6687a;
+            /* Accent pink for top border */
         }
 
         .header {
-            background: #1a73e8;
-            color: white;
-            padding: 20px;
+            padding: 30px 40px;
             text-align: center;
-            border-radius: 8px 8px 0 0;
         }
 
-        .footer {
-            font-size: 12px;
-            color: #999;
+        .header .logo {
+            font-size: 36px;
+            color: #e6687a;
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 24px;
+            color: #46a2da;
+        }
+
+        .content {
+            padding: 0 40px 30px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.7;
+            margin: 18px 0;
+            color: #555;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #4194cb;
+            padding: 16px 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+            list-style-type: '✅ ';
+        }
+
+        .instructions ul li {
+            padding-left: 10px;
+            margin-bottom: 12px;
+        }
+
+        .cta-button-container {
             text-align: center;
-            margin-top: 20px;
+            margin: 40px 0;
         }
 
         .btn {
             display: inline-block;
-            padding: 10px 20px;
-            background: #1a73e8;
-            color: white;
+            background: linear-gradient(45deg, #46a2da, #3982b8);
+            color: #fff !important;
             text-decoration: none;
-            border-radius: 4px;
-            margin-top: 20px;
+            padding: 18px 45px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 6px 20px rgba(70, 162, 218, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(57, 130, 184, 0.5);
+        }
+
+
+
+        .footer {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px 40px;
+            border-top: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+        }
+
+        .footer a {
+            color: #46a2da;
+            text-decoration: none;
+        }
+
+        strong {
+            color: #3982b8;
+        }
+
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .header,
+            .content {
+                padding: 25px 20px;
+            }
+
+            .btn {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 18px 20px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
+    <div class="email-container">
         <div class="header">
-            <h2>Trường Mầm Non Sakura</h2>
+            <div class="logo">🌸</div>
+            <h1>TRƯỜNG MẦM NON SAKURA</h1>
         </div>
-        <p>Xin chào anh/chị <strong><%= parentName %></strong>,</p>
-        <p>Nhà trường đã nhận được thông tin đăng ký nhập học của học sinh <strong><%= studentName %></strong> với mã đăng
-            kí là <strong><%= enrollCode %></strong>.</p>
-        <p>Để hoàn tất thủ tục, vui lòng anh/chị gửi lại email cho nhà trường với:</p>
-        <ul>
-            <li><strong>Tiêu đề:</strong> “XÁC NHẬN NHẬP HỌC - Mã Đăng Kí”</li>
-            <li><strong>Đính kèm:</strong> Ảnh của học sinh</li>
-        </ul>
-        <p style="text-align:center;">
-            <a class="btn" href="mailto:kidmanagesystem.2025@gmail.com?subject=XÁC NHẬN NHẬP HỌC - <%= enrollCode %>">Gửi
-                xác nhận ngay</a>
-        </p>
-        <p>Xin cảm ơn!</p>
+
+        <div class="content">
+            <p>Thân gửi anh/chị <strong>
+                    <%= parentName %>
+                </strong>,</p>
+
+            <p>
+                Trường Mầm non Sakura xin vui mừng thông báo: nhà trường đã nhận được hồ sơ đăng ký nhập học của bé.
+            </p>
+
+            <div class="info-box">
+                <p>Học sinh: <strong>
+                        <%= studentName %>
+                    </strong></p>
+                <p>Mã đăng ký: <strong>
+                        <%= enrollCode %>
+                    </strong></p>
+            </div>
+
+            <div class="instructions">
+                <p>Để hoàn tất thủ tục và giữ chỗ cho bé, anh/chị vui lòng thực hiện bước xác nhận cuối cùng bằng cách
+                    gửi một email tới nhà trường với nội dung:</p>
+                <ul>
+                    <li><strong>Tiêu đề:</strong> XÁC NHẬN NHẬP HỌC - <%= enrollCode %>
+                    </li>
+                    <li><strong>Nội dung:</strong> Đính kèm 01 ảnh chân dung của bé.</li>
+                </ul>
+            </div>
+
+            <div class="cta-button-container">
+                <a class="btn"
+                    href="mailto:kidmanagesystem.2025@gmail.com?subject=XÁC NHẬN NHẬP HỌC - <%= enrollCode %>">
+                    Gửi xác nhận ngay ➔
+                </a>
+            </div>
+
+            <p>Nhà trường rất mong được chào đón bé và gia đình trong năm học sắp tới. <br />Trân trọng,</p>
+        </div>
+
         <div class="footer">
             © 2025 Trường Mầm Non Sakura<br />
-            Email: kidmanagesystem.2025@gmail.com | Hotline: 0913-339-709
+            Email: <a href="mailto:kidmanagesystem.2025@gmail.com">kidmanagesystem.2025@gmail.com</a><br />
+            Hotline: 0913-339-709
         </div>
     </div>
 </body>
