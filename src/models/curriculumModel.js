@@ -7,6 +7,8 @@ const CurriculumSchema = new mongoose.Schema(
         age: {type: String, required: true},
         activityNumber: {type: Number},
         status: { type: Boolean, default: true },
+        startTime: { type: String },
+        endTime: { type: String }
     },
     { timestamps: true, versionKey: false }
 );
