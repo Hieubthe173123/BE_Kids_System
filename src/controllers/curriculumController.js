@@ -21,9 +21,18 @@ exports.createCurriculum = async (req, res) => {
         });
         const paddedNumber = String(countToday + 1).padStart(3, '0');
         const curriculumCode = `${prefix}${paddedNumber}`;
-
+        const errorList = [];
+        if(!activityName){
+            errorList.push({ message: "Tên hoạt động bắt buộc nhập"});
+        }
+        if(!age){
+            errorList.push({ message: "Độ tuổi bắt buộc nhập" });
+        }
         if (!activityFixed && !activityNumber) {
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: "Số tiết học bắt buộc nhập" });
+            errorList.push({ message: "Số tiết học bắt buộc nhập" });
+        }
+        if(errorList.length > 0){
+            return res.status(HTTP_STATUS.BAD_REQUEST).json(errorList);
         }
         const newDataCurriculum = new Curriculum({
             curriculumCode,
@@ -51,15 +60,25 @@ exports.updateCurriculum = async (req, res) => {
     try {
         const { activityName, activityFixed, age, activityNumber } = req.body;
         const { id } = req.params;
-        if (!activityFixed && !activityNumber) {
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: "Số tiết học bắt buộc nhập" });
-        }
+        const errorList = [];
         const curriculum = await Curriculum.findOne({ _id: id, status: true });
 
         if (!curriculum) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "Không tìm thấy chương trình học" });
+            errorList.push({ message: "Không tìm thấy chương trình học" });
+        }
+        if(!activityName){
+            errorList.push({ message: "Tên hoạt động bắt buộc nhập"});
+        }
+        if(!age){
+            errorList.push({ message: "Độ tuổi bắt buộc nhập" });
+        }
+        if (!activityFixed && !activityNumber) {
+            errorList.push({ message: "Số tiết học bắt buộc nhập" });
         }
 
+        if(errorList.length > 0){
+            return res.status(HTTP_STATUS.BAD_REQUEST).json(errorList);
+        }
         curriculum.activityName = req.body.activityName;
         curriculum.activityFixed = req.body.activityFixed;
         curriculum.age = req.body.age;
@@ -70,7 +89,6 @@ exports.updateCurriculum = async (req, res) => {
         res.status(HTTP_STATUS.OK).json({ message: RESPONSE_MESSAGE.UPDATED, data: curriculum });
 
     } catch (err) {
-        console.error("Curriculum error:", err);
         return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Server error" });
     }
 }

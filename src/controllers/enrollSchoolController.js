@@ -19,6 +19,21 @@ const UPLOADIMAGE = require('../helper/uploadImageHelper');
 const { generateUsername } = require('../helper/index');
 
 
+exports.getEnrollSchool = async (req, res) => {
+    try{
+        const enrollList = await EnrollSChool.find();
+        console.log("🚀 ~ exports.getEnrollSchool= ~ enrollList:", enrollList);
+        
+        res.status(HTTP_STATUS.OK).json({
+            message: RESPONSE_MESSAGE.SUCCESS,
+            data: enrollList,
+        });
+        
+    }catch(error){
+        res.status(HTTP_STATUS.SERVER_ERROR).json({ message: error.message });
+    }
+}
+
 exports.createEnrollSchool = async (req, res) => {
     try {
         const { studentName, studentAge, studentDob, studentGender,
