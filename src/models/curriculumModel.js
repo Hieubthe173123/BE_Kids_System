@@ -4,7 +4,7 @@ const CurriculumSchema = new mongoose.Schema(
         curriculumCode: {type: String, required: true, unique: true},
         activityName: {type: String, required: true},
         activityFixed: {type: Boolean, default: false},
-        age: {type: Number, required: true},
+        age: {type: String, required: true},
         activityNumber: {type: Number},
         status: { type: Boolean, default: true },
     },
