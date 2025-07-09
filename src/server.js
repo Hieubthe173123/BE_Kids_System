@@ -1,13 +1,13 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const morgan = require('morgan');
-const connectDB = require('./configs/dbConfig');
-const { connectRedis } = require("./configs/redisConfig")
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const morgan = require("morgan");
+const connectDB = require("./configs/dbConfig");
+const { connectRedis } = require("./configs/redisConfig");
 const cookieParser = require("cookie-parser");
 // Khai báo routes
-const student = require('./routes/studentRoute');
+const student = require("./routes/studentRoute");
 const parent = require("./routes/parentRoute");
 const account = require("./routes/accountRoute");
 
@@ -18,6 +18,8 @@ const weeklyMenu = require("./routes/menuRoute");
 const classRoute = require("./routes/classRoute");
 const roomRoute = require("./routes/roomRoute");
 const curriculum = require("./routes/curriculumRoute");
+
+const schedule = require("./routes/scheduleRoute");
 // Khai báo dotenv
 dotenv.config();
 
@@ -25,12 +27,14 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true,
-}));
+app.use(
+    cors({
+        origin: process.env.CLIENT_URL,
+        credentials: true,
+    })
+);
 app.use(express.json());
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 app.use(cookieParser());
 
 // Connect to MongoDB
@@ -47,19 +51,20 @@ app.use("/api/auth", auth);
 
 app.use("/api/weeklyMenu", weeklyMenu);
 app.use("/api/enrollSchool", enrollSchool);
-app.use("/api/class", classRoute)
+app.use("/api/class", classRoute);
 app.use("/api/room", roomRoute);
 
 app.use("/api/curriculum", curriculum);
 
-// route test
-app.get('/', (req, res) => {
-  res.send('👋 Welcome to the Kindergarten Management API');
-});
+app.use("/api/schedule", schedule);
 
+// route test
+app.get("/", (req, res) => {
+    res.send("👋 Welcome to the Kindergarten Management API");
+});
 
 // Start server
 const PORT = process.env.PORT || 9999;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });
