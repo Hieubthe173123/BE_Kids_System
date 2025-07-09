@@ -13,7 +13,7 @@ const account = require("./routes/accountRoute");
 const auth = require("./routes/authRoute");
 const enrollSchool = require("./routes/enrollSchoolRoute");
 const classRoute = require("./routes/classRoute");
-
+const adminRoute = require("./routes/adminRoute");
 // Khai báo dotenv
 dotenv.config();
 
@@ -42,7 +42,7 @@ app.use("/api/account", account);
 app.use("/api/auth", auth);
 app.use("/api/enrollSchool", enrollSchool);
 app.use("/api/class", classRoute)
-
+app.use("/api/admin",adminRoute);
 // route test
 app.get('/', (req, res) => {
   res.send('👋 Welcome to the Kindergarten Management API');
