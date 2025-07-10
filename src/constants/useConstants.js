@@ -35,6 +35,7 @@ const VALIDATION_CONSTANTS = {
     PHONE_REGEX: /^0[0-9]{9}$/, 
     ID_CARD_REGEX: /^[0-9]{9,12}$/,
     EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    CLASS_SUFFIXES: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 }
 
 const TOKEN = {
@@ -50,7 +51,7 @@ const STATE = {
     ERROR: "Xử lý lỗi"
 }
 
-const NUMBER_STUDENT_IN_CLASS = 40;
+const NUMBER_STUDENT_IN_CLASS = 10;
 
 module.exports = {
   HTTP_STATUS,
