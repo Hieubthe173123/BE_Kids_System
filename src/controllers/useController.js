@@ -7,10 +7,11 @@ const findAllGeneric = (Model, populateFields = []) => async (req, res) => {
         const { fields, ...filters } = req.query;
 
         const selectFields = fields ? fields.split(',').join(' ') : '';
-        filters.status = true;
+        if (Model.modelName !== 'WeeklyMenu') {
+            filters.status = true;
+        }
 
         let query = Model.find(filters).select(selectFields);
-        
         populateFields.forEach((field) => {
             query = query.populate(field);
         });
@@ -58,7 +59,7 @@ const createGeneric = (Model, uniField = []) => async (req, res) => {
                     filter[item] = req.body[item];
                 }
             }
-            
+
             filter.status = true;
 
             const existing = await Model.findOne(filter);
