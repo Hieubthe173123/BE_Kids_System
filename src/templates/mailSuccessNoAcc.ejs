@@ -3,76 +3,202 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f4f7f9;
             color: #333;
         }
 
         .email-container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 24px;
             max-width: 600px;
-            margin: auto;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+            border-top: 6px solid #27ae60;
         }
 
-        h2 {
+        .header {
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .header .logo {
+            font-size: 36px;
+            color: #e6687a;
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 24px;
             color: #27ae60;
+        }
+
+        .content {
+            padding: 0 40px 30px;
         }
 
         p {
             font-size: 16px;
-            line-height: 1.5;
+            line-height: 1.7;
+            margin: 18px 0;
+            color: #555;
         }
 
-        .account-info {
-            background-color: #ecf9f1;
-            padding: 12px;
+        .info-box {
+            background-color: #e8f8f0;
+            border-left: 4px solid #27ae60;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            font-size: 16px;
+            color: #155724;
+        }
+
+        .info-box .credentials-label {
+            font-weight: 700;
+        }
+
+        .temp-password {
+            background-color: #fbebee;
+            border: 1px dashed #e6687a;
+            color: #c0392b;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 10px 15px;
+            font-size: 18px;
+            font-weight: 700;
             border-radius: 6px;
-            margin: 16px 0;
-            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .cta-button-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #46a2da, #3982b8);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 18px 45px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 6px 20px rgba(70, 162, 218, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(57, 130, 184, 0.5);
         }
 
         .footer {
-            margin-top: 32px;
-            font-size: 14px;
+            font-size: 13px;
             color: #888;
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px 40px;
+            border-top: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+        }
+
+        .footer a {
+            color: #46a2da;
+            text-decoration: none;
+        }
+
+        strong {
+            color: #3982b8;
+        }
+
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .header,
+            .content {
+                padding: 25px 20px;
+            }
+
+            .btn {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 18px 20px;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="email-container">
-        <h2>Thông báo nhập học thành công</h2>
-        <p>Kính gửi Anh/Chị,</p>
-        <p>
-            Nhà trường xin trân trọng thông báo rằng hồ sơ nhập học của Anh/Chị cho học sinh
-            đã được tiếp nhận và xác nhận thành công.
-        </p>
-        <p>
-            Dưới đây là thông tin tài khoản để truy cập vào hệ thống của Nhà trường:
-        </p>
-        <div class="account-info">
-            Tên đăng nhập: <span style="color: #2980b9;"><%= username %></span><br />
-            Mật khẩu tạm thời: <span style="color: #c0392b;"><%= password %></span>
+        <div class="header">
+            <div class="logo">🌸</div>
+            <h1>NHẬP HỌC THÀNH CÔNG</h1>
         </div>
-        <p>
-            Vui lòng đăng nhập và thay đổi mật khẩu sau lần đăng nhập đầu tiên để đảm bảo bảo mật thông tin.
-        </p>
-        <p>
-            Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với phòng Tuyển sinh để được hỗ trợ.
-        </p>
-        <p>
-            Trân trọng,<br />
-            <strong>Phòng Tuyển sinh</strong><br />
-            Nhà trường
-        </p>
+
+        <div class="content">
+            <p>Kính gửi Anh/Chị <strong>
+                    <%= parentName %>
+                </strong>,</p>
+
+            <p>
+                Chào mừng bé <strong>
+                    <%= studentName %>
+                </strong> và gia đình đã chính thức trở thành thành viên của ngôi nhà chung Mầm non Sakura!
+            </p>
+
+            <div class="info-box">
+                <p>✅ Dưới đây là thông tin tài khoản để truy cập cổng thông tin phụ huynh:</p>
+
+                <p style="margin-top: 20px;">
+                    <span class="credentials-label">Tên đăng nhập:</span>
+                    <%= username %><br>
+                </p>
+                <p>
+                    <span class="credentials-label">Mật khẩu tạm thời:</span>
+                <div class="temp-password">
+                    <%= password %>
+                </div>
+                </p>
+
+                <p style="font-size: 14px; color: #555; margin-top: 15px;">
+                    <strong>Lưu ý quan trọng:</strong> Vì lý do bảo mật, Anh/Chị vui lòng đổi mật khẩu ngay sau lần đăng
+                    nhập đầu tiên.
+                </p>
+            </div>
+
+            <div class="cta-button-container">
+                <a class="btn" href="http://a.com">
+                    Đăng nhập & Đổi mật khẩu ➔
+                </a>
+            </div>
+
+        </div>
+
         <div class="footer">
-            (Email này được gửi tự động, vui lòng không phản hồi)
+            © 2025 Trường Mầm Non Sakura<br />
+            Email: <a href="mailto:kidmanagesystem.2025@gmail.com">kidmanagesystem.2025@gmail.com</a><br />
+            Hotline: 0913-339-709
         </div>
     </div>
 </body>

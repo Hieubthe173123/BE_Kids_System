@@ -50,11 +50,14 @@ const STATE = {
     ERROR: "Xử lý lỗi"
 }
 
+const NUMBER_STUDENT_IN_CLASS = 40;
+
 module.exports = {
   HTTP_STATUS,
   RESPONSE_MESSAGE,
   USER_ROLES,
   VALIDATION_CONSTANTS,
   TOKEN,
-  STATE
+  STATE,
+  NUMBER_STUDENT_IN_CLASS
 };
