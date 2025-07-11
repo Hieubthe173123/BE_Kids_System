@@ -18,8 +18,11 @@ const {
     getAvailableStudents,
     getAvailableTeachers,
     getAllClassBySchoolYear,
-    createClassBatch
+    createClassBatch,
+    createNewSchoolYear,
+    getStudentClassInfo
 } = require('../controllers/classController');
+const verifyToken = require("../middlewares/verifyToken");
 
 // ===== STATIC ROUTES FIRST =====
 router.get('/school-year', getAllSchoolYears);
@@ -44,5 +47,12 @@ router.post('/:id/students', addStudentsToClass);
 router.post('/:id/teachers', addTeachersToClass);
 router.delete('/:classId/students/:studentId', removeStudentFromClass);
 router.delete('/:classId/teachers/:teacherId', removeTeacherFromClass);
+
+// ===== STUDENT CLASS INFO =====
+router.get('/:studentId/class-info', getStudentClassInfo);
+
+
+// ====== CREATE SCHOOL YEAR ======
+router.post('/create-schoolyear', verifyToken, createNewSchoolYear)
 
 module.exports = router;
