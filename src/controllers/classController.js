@@ -235,6 +235,34 @@ exports.getStudentsInClass = async (req, res) => {
     }
 };
 
+exports.getStudentClassInfo = async (req, res) => {
+    const { studentId } = req.params;
+
+    try {
+        const studentClass = await Class.findOne({ students: studentId })
+            .populate({
+                path: "teacher",
+                select: "fullName"
+            })
+            .lean();
+
+        if (!studentClass) {
+            return res.status(404).json({ message: "Học sinh này chưa được xếp lớp" });
+        }
+
+        const teacherNames = studentClass.teacher.map(t => t.fullName).join(", ");
+
+        res.json({
+            className: studentClass.className,
+            teacher: teacherNames,
+            schoolYear: studentClass.schoolYear
+        });
+    } catch (error) {
+        console.error("Error fetching student class info:", error);
+        res.status(500).json({ message: "Lỗi server khi lấy thông tin lớp học" });
+    }
+};
+
 
 exports.getTeachersInClass = async (req, res) => {
     try {

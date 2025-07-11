@@ -3,20 +3,25 @@ const { HTTP_STATUS, RESPONSE_MESSAGE, USER_ROLES, VALIDATION_CONSTANTS } = requ
 
 
 const findAllGeneric = (Model, populateFields = []) => async (req, res) => {
+    console.log("🚀 ~ findAllGeneric ~ Model:", Model)
     try {
         const { fields, ...filters } = req.query;
 
         const selectFields = fields ? fields.split(',').join(' ') : '';
+        console.log("🚀 ~ findAllGeneric ~ selectFields11111111:", selectFields)
         if (Model.modelName !== 'WeeklyMenu') {
+            console.log("🚀 ~ findAllGeneric ~ selectFields:", selectFields)
             filters.status = true;
         }
 
         let query = Model.find(filters).select(selectFields);
+        console.log("🚀 ~ findAllGeneric ~ query:", query)
         populateFields.forEach((field) => {
             query = query.populate(field);
         });
 
         const data = await query.exec();
+        console.log("🚀 ~ findAllGeneric ~ data:", data)
 
         res.status(HTTP_STATUS.OK).json({ data });
     } catch (err) {

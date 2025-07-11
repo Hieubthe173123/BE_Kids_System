@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
-const { 
-  findAllGeneric, 
-  findIdGeneric, 
-  createGeneric, 
+const {
+  findAllGeneric,
+  findIdGeneric,
+  createGeneric,
   deletedSoftGeneric,
   updateGeneric
 } = require('../controllers/useController');
+
+const { getStudentsByParentId } = require('../controllers/parentController');
 
 const Parent = require("../models/parentModel");
 const Account = require("../models/accountModel"); // <-- THÊM DÒNG NÀY
@@ -41,4 +43,6 @@ router.get("/unused", verifyToken, async (req, res) => {
 });
 router.get("/", verifyToken, findAllGeneric(Parent, ["student"]));
 router.get("/:id", verifyToken, findIdGeneric(Parent, ["student"]));
+router.get('/:parentId/students', getStudentsByParentId);
+
 module.exports = router;
