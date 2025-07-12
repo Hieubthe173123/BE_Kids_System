@@ -373,7 +373,30 @@ exports.createClassBatch = async (req, res) => {
     }
 }
 
+exports.statisticSchoolYear = async (req, res) => {
+    try{
+        console.log("1111")
+        const data = await Class.aggregate([
+      {
+        $group: {
+          _id: "$schoolYear",
+          totalClasses: { $sum: 1 },
+          totalStudents: { $sum: { $size: "$students" } },
+          totalTeachers: { $sum: { $size: "$teacher" } },
+        },
+      },
+      { $sort: { _id: 1 } }
+    ]);
 
+    return res.status(HTTP_STATUS.OK).json({
+        message: RESPONSE_MESSAGE.SUCCESS,
+        data: data
+    })
+    }catch(error){
+        console.error("Error createNewSchoolYear:", error.message);
+        return res.status(HTTP_STATUS.SERVER_ERROR).json(error.message);
+    }
+}
 
 exports.createNewSchoolYear = async (req, res) => {
     try {

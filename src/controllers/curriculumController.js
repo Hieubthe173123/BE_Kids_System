@@ -11,16 +11,26 @@ const {
 } = require('./useController');
 
 exports.createCurriculum = async (req, res) => {
-    try {
-        const { activityName, activityFixed, age, activityNumber } = req.body;
+  try {
+    const { activityName, activityFixed, age, activityNumber } = req.body;
 
-        const today = moment().format('YY');
-        const prefix = `CUR-${today}`;
-        const countToday = await Curriculum.countDocuments({
-            curriculumCode: { $regex: `^${prefix}` }
-        });
-        const paddedNumber = String(countToday + 1).padStart(3, '0');
-        const curriculumCode = `${prefix}${paddedNumber}`;
+    const today = moment().format('YY');
+    const prefix = `CUR-${today}`;
+
+    const lastCurriculum = await Curriculum.findOne({
+      curriculumCode: { $regex: `^${prefix}` }
+    }).sort({ curriculumCode: -1 });
+
+    let paddedNumber = '001';
+
+    if (lastCurriculum) {
+      const lastCode = lastCurriculum.curriculumCode;
+      const lastNumber = parseInt(lastCode.slice(prefix.length), 10);
+      paddedNumber = String(lastNumber + 1).padStart(3, '0');
+    }
+
+    const curriculumCode = `${prefix}${paddedNumber}`;
+
         const errorList = [];
         if(!activityName){
             errorList.push({ message: "Tên hoạt động bắt buộc nhập"});
@@ -126,7 +136,6 @@ exports.createTimeFixed = async (req, res) => {
       const start = new Date(startTime);
       const end = new Date(endTime);
 
-      // ✅ Check if startTime >= endTime
       if (start >= end) {
         errorList.push({
           message: `Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc cho hoạt động ${curriculum.activityName}`,
@@ -139,9 +148,17 @@ exports.createTimeFixed = async (req, res) => {
       const endHour = end.getUTCHours();
       const endMinute = end.getUTCMinutes();
 
-      const otherCurriculums = await Curriculum.find({ _id: { $ne: activityId } });
+      const otherCurriculums = await Curriculum.find({
+        _id: { $ne: activityId },
+        status: true
+      });
 
-      for (const other of otherCurriculums) {
+      const otherAgeCurriculums = otherCurriculums.filter(item =>
+        item.age === curriculum.age || item.age === "Tất cả"
+      );
+
+
+      for (const other of otherAgeCurriculums) {
         if (!other.startTime || !other.endTime) continue;
 
         const otherStart = new Date(other.startTime);

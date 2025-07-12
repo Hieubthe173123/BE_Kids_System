@@ -19,7 +19,8 @@ const {
     getAvailableTeachers,
     getAllClassBySchoolYear,
     createClassBatch,
-    createNewSchoolYear
+    createNewSchoolYear,
+    statisticSchoolYear
 } = require('../controllers/classController');
 const verifyToken = require("../middlewares/verifyToken");
 
@@ -49,6 +50,7 @@ router.delete('/:classId/teachers/:teacherId', removeTeacherFromClass);
 
 
 // ====== CREATE SCHOOL YEAR ======
-router.post('/create-schoolyear',verifyToken, createNewSchoolYear)
+router.post('/schoolyear/create-schoolyear',verifyToken, createNewSchoolYear)
+router.get('/schoolyear/statistic', statisticSchoolYear)
 
 module.exports = router;
