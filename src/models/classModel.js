@@ -7,7 +7,6 @@ const ClassSchema = new mongoose.Schema(
         className: { type: String },
         classAge: { type: String },
         room: { type: mongoose.Types.ObjectId, ref: "Room" },
-        // room: { type: String },
         status: { type: Boolean, default: true },
     },
     { timestamps: true, versionKey: false }
