@@ -20,6 +20,7 @@ const {
     getAllClassBySchoolYear,
     createClassBatch,
     createNewSchoolYear,
+    statisticSchoolYear,
     getStudentClassInfo
 } = require('../controllers/classController');
 const verifyToken = require("../middlewares/verifyToken");
@@ -53,6 +54,7 @@ router.get('/:studentId/class-info', getStudentClassInfo);
 
 
 // ====== CREATE SCHOOL YEAR ======
-router.post('/create-schoolyear', verifyToken, createNewSchoolYear)
+router.post('/schoolyear/create-schoolyear',verifyToken, createNewSchoolYear)
+router.get('/schoolyear/statistic', statisticSchoolYear)
 
 module.exports = router;
