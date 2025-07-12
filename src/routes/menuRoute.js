@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { findAllGeneric, findIdGeneric} = require('../controllers/useController');
+const { findAllGeneric, findIdGeneric } = require('../controllers/useController');
 const verifyToken = require("../middlewares/verifyToken");
 const weeklyMenuModel = require("../models/weeklyMenuModel");
 
 router.get("/", verifyToken, findAllGeneric(weeklyMenuModel, [""]));
-router.get("/:id", verifyToken,  findIdGeneric(weeklyMenuModel, [""]));
+router.get("/:id", verifyToken, findIdGeneric(weeklyMenuModel, [""]));
 router.post("/", verifyToken, async (req, res) => {
     try {
         const { weekStart, dailyMenus } = req.body;
