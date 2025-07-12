@@ -1,4 +1,5 @@
 const Parent = require('../models/parentModel');
+const Account = require('../models/accountModel');
 
 exports.getStudentsByParentId = async (req, res) => {
     const { parentId } = req.params;
@@ -20,4 +21,27 @@ exports.getStudentsByParentId = async (req, res) => {
         console.error('Error fetching students by parent:', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
+};
+
+exports.getUnusedParentAccounts = async (req, res) => {
+  try {
+    const usedAccountIds = await Parent.find().distinct("account");
+
+    const unusedAccounts = await Account.find({
+      _id: { $nin: usedAccountIds },
+      role: "parent",
+      status: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: unusedAccounts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
 };

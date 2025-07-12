@@ -7,8 +7,8 @@ const ParentSchema = new mongoose.Schema(
     email: {type: String},
     IDCard: {type: String, required: true},
     gender: { type: String, enum: ["male", "female", "other"] },
-    account: { type: mongoose.Types.ObjectId, ref: "Account", required: true },
-    student: [{ type: mongoose.Types.ObjectId, ref: "Student", required: true }],
+    account: { type: mongoose.Types.ObjectId, ref: "Account" },
+    student: [{ type: mongoose.Types.ObjectId, ref: "Student"}],
     address: { type: String, required: true },
     status: { type: Boolean, default: true},
     image: { type: String}
