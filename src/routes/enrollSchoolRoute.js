@@ -7,7 +7,7 @@ const EnrollSChool = require('../models/enrollSchoolModel');
 
 
 router.get("/", verifyToken, getEnrollSchool);
-router.post("/",verifyToken, createEnrollSchool);
+router.post("/", createEnrollSchool);
 router.post('/process-enroll', verifyToken, processEnrollSchoolAll);
 
 

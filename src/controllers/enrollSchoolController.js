@@ -196,9 +196,10 @@ exports.processEnrollSchoolAll = async (req, res) => {
 
                             const htmlPathSuccessNoAcc = path.join(__dirname, '..', 'templates', 'mailSuccessNoAcc.ejs');
                             const htmlSuccessNoAcc = await ejs.renderFile(htmlPathSuccessNoAcc, {
+                                parentName: parentName,
                                 username: username,
                                 password: PASSWORD_DEFAULT,
-                                studentCode: studentCode
+                                studentName: studentName
                             });
 
                             const newDataAcc = new Account({
@@ -227,7 +228,7 @@ exports.processEnrollSchoolAll = async (req, res) => {
                                 htmlSuccessNoAcc,
                                 '',
                                 () => {
-                                    console.log(`✅ Mail gửi thành công đến ssemail: ${email}`);
+                                    console.log(`✅ Mail gửi thành công đến mail: ${email}`);
                                 }
                             );
                         } else {
@@ -235,8 +236,9 @@ exports.processEnrollSchoolAll = async (req, res) => {
 
                             const htmlPathSuccessAcc = path.join(__dirname, '..', 'templates', 'mailSuccessAcc.ejs');
                             const htmlSuccessAcc = await ejs.renderFile(htmlPathSuccessAcc, {
+                                parentName: parentName,
                                 username: username,
-                                studentCode: studentCode
+                                studentName: studentName
                             });
 
 
