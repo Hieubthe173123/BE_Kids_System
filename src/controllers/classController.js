@@ -235,6 +235,34 @@ exports.getStudentsInClass = async (req, res) => {
     }
 };
 
+exports.getStudentClassInfo = async (req, res) => {
+    const { studentId } = req.params;
+
+    try {
+        const studentClass = await Class.findOne({ students: studentId })
+            .populate({
+                path: "teacher",
+                select: "fullName"
+            })
+            .lean();
+
+        if (!studentClass) {
+            return res.status(404).json({ message: "Học sinh này chưa được xếp lớp" });
+        }
+
+        const teacherNames = studentClass.teacher.map(t => t.fullName).join(", ");
+
+        res.json({
+            className: studentClass.className,
+            teacher: teacherNames,
+            schoolYear: studentClass.schoolYear
+        });
+    } catch (error) {
+        console.error("Error fetching student class info:", error);
+        res.status(500).json({ message: "Lỗi server khi lấy thông tin lớp học" });
+    }
+};
+
 
 exports.getTeachersInClass = async (req, res) => {
     try {
@@ -373,7 +401,30 @@ exports.createClassBatch = async (req, res) => {
     }
 }
 
+exports.statisticSchoolYear = async (req, res) => {
+    try{
+        console.log("1111")
+        const data = await Class.aggregate([
+      {
+        $group: {
+          _id: "$schoolYear",
+          totalClasses: { $sum: 1 },
+          totalStudents: { $sum: { $size: "$students" } },
+          totalTeachers: { $sum: { $size: "$teacher" } },
+        },
+      },
+      { $sort: { _id: 1 } }
+    ]);
 
+    return res.status(HTTP_STATUS.OK).json({
+        message: RESPONSE_MESSAGE.SUCCESS,
+        data: data
+    })
+    }catch(error){
+        console.error("Error createNewSchoolYear:", error.message);
+        return res.status(HTTP_STATUS.SERVER_ERROR).json(error.message);
+    }
+}
 
 exports.createNewSchoolYear = async (req, res) => {
     try {
