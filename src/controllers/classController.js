@@ -158,7 +158,30 @@ exports.getAllClassBySchoolYear = async (req, res) => {
             });
         }
 
-        return res.status(HTTP_STATUS.OK).json({ data: classes });
+        const sortName = [];
+        for (const item of classes) {
+            const { className } = item;
+            const match = className.match(/^(\d+)([A-Za-z])$/);
+            if (match) {
+                const numberPart = parseInt(match[1], 10);
+                const letterPart = match[2];
+                sortName.push({
+                    number: numberPart,
+                    letter: letterPart,
+                    class: item
+                });
+            }
+        }
+        sortName.sort((a, b) => {
+            if (a.number === b.number) {
+                return a.letter.localeCompare(b.letter);
+            }
+            return a.number - b.number;
+        });
+
+        const sortedClasses = sortName.map(i => i.class);
+
+        return res.status(HTTP_STATUS.OK).json({ data: sortedClasses });
     } catch (err) {
         return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: err.message });
     }
@@ -402,25 +425,25 @@ exports.createClassBatch = async (req, res) => {
 }
 
 exports.statisticSchoolYear = async (req, res) => {
-    try{
+    try {
         console.log("1111")
         const data = await Class.aggregate([
-      {
-        $group: {
-          _id: "$schoolYear",
-          totalClasses: { $sum: 1 },
-          totalStudents: { $sum: { $size: "$students" } },
-          totalTeachers: { $sum: { $size: "$teacher" } },
-        },
-      },
-      { $sort: { _id: 1 } }
-    ]);
+            {
+                $group: {
+                    _id: "$schoolYear",
+                    totalClasses: { $sum: 1 },
+                    totalStudents: { $sum: { $size: "$students" } },
+                    totalTeachers: { $sum: { $size: "$teacher" } },
+                },
+            },
+            { $sort: { _id: 1 } }
+        ]);
 
-    return res.status(HTTP_STATUS.OK).json({
-        message: RESPONSE_MESSAGE.SUCCESS,
-        data: data
-    })
-    }catch(error){
+        return res.status(HTTP_STATUS.OK).json({
+            message: RESPONSE_MESSAGE.SUCCESS,
+            data: data
+        })
+    } catch (error) {
         console.error("Error createNewSchoolYear:", error.message);
         return res.status(HTTP_STATUS.SERVER_ERROR).json(error.message);
     }
