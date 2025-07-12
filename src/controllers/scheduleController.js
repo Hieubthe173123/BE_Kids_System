@@ -2,6 +2,7 @@ const Class = require("../models/classModel");
 const Curriculum = require("../models/curriculumModel");
 const { HTTP_STATUS } = require("../constants/useConstants");
 const { generateScheduleWithGemini } = require("../AI/aiController");
+const Schedule = require("../models/scheduleModel");
 
 // Map classAge to age group key and class_name
 const ageGroupMap = {
@@ -182,12 +183,206 @@ exports.genScheduleWithAI = async (req, res) => {
                 result = JSON.parse(result);
             } catch (e) {}
         }
-        return res.status(HTTP_STATUS.OK).json({
+
+        const fixedCurriculums = await getCurriculumFixedTimeList();
+
+        const mergedResult = await mergeFixedActivities(
             result,
+            fixedCurriculums
+        );
+        return res.status(HTTP_STATUS.OK).json({
+            schedules: mergedResult,
         });
     } catch (err) {
         return res
             .status(HTTP_STATUS.SERVER_ERROR)
             .json({ message: err.message });
     }
+};
+
+exports.getCurriculumFixedTime = async (req, res) => {
+    const curriculums = await Curriculum.find({
+        activityFixed: true,
+        status: true,
+    });
+    console.log("Curriculums:", curriculums);
+    return curriculums.map((c) => ({
+        id: c._id,
+        activityName: c.activityName,
+        age: c.age,
+        fixed: c.activityFixed,
+        time:
+            c.startTime && c.endTime
+                ? `${toTimeStr(c.startTime)}-${toTimeStr(c.endTime)}`
+                : "",
+    }));
+};
+
+function toTimeStr(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+}
+
+async function getCurriculumFixedTimeList() {
+    const curriculums = await Curriculum.find({
+        activityFixed: true,
+        status: true,
+    });
+
+    return curriculums.map((c) => ({
+        id: c._id,
+        activityName: c.activityName,
+        age: c.age,
+        fixed: c.activityFixed,
+        time:
+            c.startTime && c.endTime
+                ? `${toTimeStr(c.startTime)}-${toTimeStr(c.endTime)}`
+                : "",
+    }));
+}
+
+async function mergeFixedActivities(scheduleArr, fixedCurriculums) {
+    function getAgeFromClassName(className) {
+        const match = className.match(/^(\d)/);
+        return match ? match[1] : null;
+    }
+
+    function parseTimeRange(timeStr) {
+        if (!timeStr) return [0, 0];
+        const [start, end] = timeStr.split("-");
+        const toNum = (t) => parseInt(t.replace(":", ""), 10);
+        return [toNum(start), toNum(end)];
+    }
+
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+    return await Promise.all(
+        scheduleArr.map(async (cls) => {
+            const age = getAgeFromClassName(cls.class);
+            const fixedForAll = fixedCurriculums.filter(
+                (f) => f.age === "Tất cả"
+            );
+            const fixedForAge = fixedCurriculums.filter((f) => f.age === age);
+            const allFixed = [...fixedForAll, ...fixedForAge];
+
+            const newSchedule = {};
+            for (const day of days) {
+                const originActs2 = await Promise.all(
+                    (cls.schedule[day] || []).map(async (act) => {
+                        const id = await Curriculum.findOne({
+                            activityFixed: false,
+                            status: true,
+                            activityName: act.activity,
+                            age: Number(age),
+                        });
+                        return {
+                            id: id?._id,
+                            age: age,
+                            time: act.time,
+                            activity: act.activity,
+                            fixed: false,
+                        };
+                    })
+                );
+
+                const fixedActs = allFixed.map((f) => ({
+                    id: f.id,
+                    age: f.age,
+                    time: f.time,
+                    activity: f.activityName,
+                    fixed: true,
+                }));
+
+                const merged = [...originActs2, ...fixedActs]
+                    .filter((a) => a.time)
+                    .sort((a, b) => {
+                        const [aStart] = parseTimeRange(a.time);
+                        const [bStart] = parseTimeRange(b.time);
+                        return aStart - bStart;
+                    });
+
+                newSchedule[day] = merged;
+            }
+
+            return {
+                ...cls,
+                schedule: newSchedule,
+            };
+        })
+    );
+}
+
+exports.saveClassSchedule = async (req, res) => {
+    try {
+        const { year, schedules } = req.body;
+        const results = [];
+
+        for (const classSchedule of schedules) {
+            // Tìm classId từ tên lớp (className)
+            const classDoc = await Class.findOne({
+                className: classSchedule.class,
+                schoolYear: year,
+            });
+            if (!classDoc) {
+                results.push({
+                    class: classSchedule.class,
+                    error: "Class not found",
+                });
+                continue;
+            }
+
+            // Chuyển đổi từng activity sang đúng format
+            const scheduleObj = {};
+            for (const day of Object.keys(classSchedule.schedule)) {
+                scheduleObj[day] = [];
+                for (const activity of classSchedule.schedule[day]) {
+                    if (!activity.id) {
+                        results.push({
+                            class: classSchedule.class,
+                            day,
+                            activity: activity.activity,
+                            error: "Curriculum id missing",
+                        });
+                        continue;
+                    }
+                    scheduleObj[day].push({
+                        time: activity.time,
+                        fixed: activity.fixed,
+                        curriculum: activity.id, // lấy trực tiếp id
+                    });
+                }
+            }
+
+            // Upsert schedule cho từng class + year
+            await Schedule.findOneAndUpdate(
+                { class: classDoc._id, schoolYear: year },
+                {
+                    class: classDoc._id,
+                    schoolYear: year,
+                    schedule: scheduleObj,
+                },
+                { upsert: true, new: true }
+            );
+            results.push({ class: classSchedule.class, status: "Saved" });
+        }
+
+        res.json({ success: true, results });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.mergeActivity = async (req, res) => {
+    const scheduleArr = req.body.schedules;
+    const fixedCurriculums = await getCurriculumFixedTimeList();
+    const mergedResult = await mergeFixedActivities(
+        scheduleArr,
+        fixedCurriculums
+    );
+    return res.status(HTTP_STATUS.OK).json({
+        schedules: mergedResult,
+    });
 };
