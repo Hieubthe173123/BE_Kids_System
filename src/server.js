@@ -10,6 +10,7 @@ const cookieParser = require("cookie-parser");
 const student = require('./routes/studentRoute');
 const parent = require("./routes/parentRoute");
 const account = require("./routes/accountRoute");
+const teacher = require("./routes/teacherRoute");
 
 const auth = require("./routes/authRoute");
 const enrollSchool = require("./routes/enrollSchoolRoute");
@@ -18,6 +19,7 @@ const weeklyMenu = require("./routes/menuRoute");
 const classRoute = require("./routes/classRoute");
 const roomRoute = require("./routes/roomRoute");
 const curriculum = require("./routes/curriculumRoute");
+const adminRoute = require("./routes/adminRoute");
 // Khai báo dotenv
 dotenv.config();
 
@@ -44,14 +46,14 @@ app.use("/api/student", student);
 app.use("/api/parent", parent);
 app.use("/api/account", account);
 app.use("/api/auth", auth);
-
+app.use("/api/teacher", teacher);
 app.use("/api/weeklyMenu", weeklyMenu);
 app.use("/api/enrollSchool", enrollSchool);
 app.use("/api/class", classRoute)
 app.use("/api/room", roomRoute);
 
 app.use("/api/curriculum", curriculum);
-
+app.use("/api/admin",adminRoute);
 // route test
 app.get('/', (req, res) => {
   res.send('👋 Welcome to the Kindergarten Management API');
