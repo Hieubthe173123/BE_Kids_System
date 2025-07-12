@@ -17,6 +17,7 @@ const dailyMenuSchema = new mongoose.Schema({
 
 const weeklyMenuSchema = new mongoose.Schema({
   weekStart: { type: Date }, // ví dụ: Thứ 2 của tuần
+  ageCategory: { type: Number },
   dailyMenus: [dailyMenuSchema],
   createdAt: { type: Date, default: Date.now },
 });

@@ -8,8 +8,8 @@ router.get("/", verifyToken, findAllGeneric(weeklyMenuModel, [""]));
 router.get("/:id", verifyToken, findIdGeneric(weeklyMenuModel, [""]));
 router.post("/", verifyToken, async (req, res) => {
     try {
-        const { weekStart, dailyMenus } = req.body;
-        const newMenu = new weeklyMenuModel({ weekStart, dailyMenus });
+        const { weekStart, dailyMenus, ageCategory} = req.body;
+        const newMenu = new weeklyMenuModel({ weekStart, ageCategory, dailyMenus });
         const savedMenu = await newMenu.save();
         res.status(201).json(savedMenu);
     } catch (err) {
@@ -18,10 +18,10 @@ router.post("/", verifyToken, async (req, res) => {
 });
 router.put("/:id", verifyToken, async (req, res) => {
     try {
-        const { weekStart, dailyMenus } = req.body;
+        const { weekStart, dailyMenus, ageCategory  } = req.body;
         const updatedMenu = await weeklyMenuModel.findByIdAndUpdate(
             req.params.id,
-            { weekStart, dailyMenus },
+            { weekStart, dailyMenus, ageCategory },
             { new: true }
         );
         if (!updatedMenu) {
