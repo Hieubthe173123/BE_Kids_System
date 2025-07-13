@@ -16,7 +16,7 @@ exports.getOrCreateTodayAttendance = async (req, res) => {
     const accountId = req.account.id;
 
     // Xác minh giáo viên
-    const teacher = await Teacher.findById(accountId);
+    const teacher = await Teacher.findOne({account:accountId});
     if (!teacher) {
       return res.status(404).json({ message: "Không tìm thấy giáo viên" });
     }
@@ -60,3 +60,66 @@ exports.getOrCreateTodayAttendance = async (req, res) => {
     return res.status(500).json({ message: "Đã xảy ra lỗi khi lấy điểm danh" });
   }
 };
+
+
+exports.bulkUpdateAttendance = async (req, res) => {
+    try {
+      const updates = req.body; // [{ _id, status, note, checkInTime, checkOutTime }]
+      const today = getTodayString();
+  
+      const bulkOps = updates
+        .filter((r) => r.date === today) // Chỉ cho phép chỉnh sửa hôm nay
+        .map((record) => ({
+          updateOne: {
+            filter: { _id: record._id },
+            update: {
+              status: record.status,
+              note: record.note,
+              checkInTime: record.checkInTime,
+              checkOutTime: record.checkOutTime,
+            },
+          },
+        }));
+  
+      await Attendance.bulkWrite(bulkOps);
+  
+      res.status(200).json({ message: "Cập nhật điểm danh thành công" });
+    } catch (err) {
+      res.status(500).json({ message: "Lỗi khi cập nhật điểm danh" });
+    }
+  };
+
+  exports.getAttendanceByDate = async (req, res) => {
+    try {
+      const { classId } = req.params;
+      const { date } = req.query;
+  
+      if (!date) {
+        return res.status(400).json({ message: "Thiếu tham số ngày (date)" });
+      }
+  
+      const records = await Attendance.find({ classId, date })
+        .populate("studentId")
+        .populate("teacherId");
+  
+      if (!records.length) {
+        return res.status(400).json({ message: "Không tìm thấy dữ liệu điểm danh" });
+      }
+  
+      const result = records.map((record, index) => ({
+        stt: index + 1,
+        studentName: record.studentId?.fullName || "--",
+        studentCode: record.studentId?.studentCode || "--",
+        status: record.status,
+        checkInTime: record.checkInTime || "--",
+        checkOutTime: record.checkOutTime || "--",
+        note: record.note || "",
+        teacherName: record.teacherId?.fullName || "--",
+      }));
+  
+      res.status(200).json({ data: result });
+    } catch (error) {
+      console.error("Lỗi khi lấy lịch sử điểm danh:", error);
+      res.status(500).json({ message: "Đã xảy ra lỗi khi truy vấn lịch sử điểm danh" });
+    }
+  };

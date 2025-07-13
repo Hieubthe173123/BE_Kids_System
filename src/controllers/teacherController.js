@@ -332,3 +332,19 @@ exports.getClassTeacher = async (req, res) => {
     res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
   }
 }
+
+
+exports.getTeacherInClass = async (req, res) => {
+  try {
+    const classId = req.params.classId;
+    const classData = await Class.findById(classId).populate("teacher");
+    if (!classData) {
+      return res.status(404).json({ message: "Không tìm thấy lớp" });
+    }
+    
+    res.json(classData.teacher);
+  } catch (error) {
+    console.error("getTeacherInClass error:", error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
+  }
+}
