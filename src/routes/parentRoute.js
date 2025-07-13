@@ -9,7 +9,7 @@ const {
   updateGeneric
 } = require('../controllers/useController');
 
-const { getStudentsByParentId } = require('../controllers/parentController');
+const { getStudentsByParentId, getUnusedParentAccounts } = require('../controllers/parentController');
 
 const Parent = require("../models/parentModel");
 const Account = require("../models/accountModel"); // <-- THÊM DÒNG NÀY
@@ -19,28 +19,7 @@ const verifyToken = require("../middlewares/verifyToken");
 router.post("/", verifyToken, createGeneric(Parent));
 router.put("/:id", verifyToken, updateGeneric(Parent));
 router.delete("/:id", verifyToken, deletedSoftGeneric(Parent));
-router.get("/unused", verifyToken, async (req, res) => {
-  try {
-    const usedAccountIds = await Parent.find().distinct("account");
-
-    const unusedAccounts = await Account.find({
-      _id: { $nin: usedAccountIds },
-      role: "parent",
-      status: true,
-    });
-
-    res.status(200).json({
-      success: true,
-      data: unusedAccounts,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-});
+router.get("/unused", verifyToken, getUnusedParentAccounts)
 router.get("/", verifyToken, findAllGeneric(Parent, ["student"]));
 router.get("/:id", verifyToken, findIdGeneric(Parent, ["student"]));
 router.get('/:parentId/students', getStudentsByParentId);
