@@ -1,0 +1,23 @@
+const express = require("express");
+const router = express.Router();
+const verifyToken = require("../middlewares/verifyToken");
+const {
+    findAllGeneric,
+    deletedSoftGeneric,
+} = require("../controllers/useController");
+const Schedule = require("../models/scheduleModel");
+const {
+    getSchoolClassesAndCurriculum,
+    genScheduleWithAI,
+    getCurriculumFixedTime,
+    saveClassSchedule,
+    mergeActivity,
+} = require("../controllers/scheduleController");
+
+router.get("/getclass", getSchoolClassesAndCurriculum);
+router.get("/genAI", genScheduleWithAI);
+router.get("/fixed", getCurriculumFixedTime);
+router.post("/save", saveClassSchedule);
+router.get("/test", mergeActivity);
+
+module.exports = router;
