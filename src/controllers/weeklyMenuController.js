@@ -8,6 +8,17 @@ function getStartOfWeek(date) {
   return new Date(d.setDate(diff));
 }
 
+const createWeeklyMenu = async (req, res) => {
+  try {
+    const { weekStart, dailyMenus, ageCategory } = req.body;
+    const newMenu = new WeeklyMenu({ weekStart, ageCategory, dailyMenus });
+    const savedMenu = await newMenu.save();
+    res.status(201).json(savedMenu);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 // API: Tạo hoặc cập nhật thực đơn theo ngày
 const addOrUpdateDailyMenu = async (req, res) => {
   try {
@@ -106,34 +117,31 @@ const getAllWeeklyMenus = async (req, res) => {
 // API: Xóa thực đơn theo tuần
 const deleteWeeklyMenu = async (req, res) => {
   try {
-    const { weekStart } = req.body;
-    const startOfWeek = new Date(weekStart);
-
-    const result = await WeeklyMenu.deleteOne({ weekStart: getStartOfWeek(startOfWeek) });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'Thực đơn không tìm thấy' });
+    const deletedMenu = await WeeklyMenu.findByIdAndDelete(req.params.id);
+    if (!deletedMenu) {
+      return res.status(404).json({ message: "Thực đơn không tìm thấy" });
     }
-
-    res.status(200).json({ message: 'Đã xóa thực đơn theo tuần' });
+    res.status(200).json({ message: "Đã xóa thực đơn theo tuần" });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-}
+};
 
 // API: Cập nhật thực đơn theo tuần
 const updateWeeklyMenu = async (req, res) => {
   try {
-    const { weekStart, dailyMenus } = req.body;
-    const startOfWeek = getStartOfWeek(new Date(weekStart));
-
-    const weekly = await WeeklyMenu.findOneAndUpdate(
-      { weekStart: startOfWeek },
-      { dailyMenus },
-      { new: true, upsert: true }
+    const { weekStart, dailyMenus, ageCategory } = req.body;
+    const updatedMenu = await WeeklyMenu.findByIdAndUpdate(
+      req.params.id,
+      { weekStart, dailyMenus, ageCategory },
+      { new: true }
     );
 
-    res.status(200).json(weekly);
+    if (!updatedMenu) {
+      return res.status(404).json({ message: "Thực đơn không tìm thấy" });
+    }
+
+    res.status(200).json(updatedMenu);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -141,6 +149,7 @@ const updateWeeklyMenu = async (req, res) => {
 
 module.exports = {
   addOrUpdateDailyMenu,
+  createWeeklyMenu,
   getWeeklyMenu,
   deleteDailyMenu,
   getAllWeeklyMenus,

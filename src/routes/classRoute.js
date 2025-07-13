@@ -55,6 +55,6 @@ router.get('/:studentId/class-info', getStudentClassInfo);
 
 // ====== CREATE SCHOOL YEAR ======
 router.post('/schoolyear/create-schoolyear',verifyToken, createNewSchoolYear)
-router.get('/schoolyear/statistic', statisticSchoolYear)
+router.get('/schoolyear/statistic',verifyToken, statisticSchoolYear)
 
 module.exports = router;

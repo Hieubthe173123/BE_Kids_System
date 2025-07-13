@@ -1,4 +1,4 @@
-const { HTTP_STATUS } = require('../constants/useConstants');
+const { HTTP_STATUS, RESPONSE_MESSAGE } = require('../constants/useConstants');
 const Class = require('../models/classModel');
 const Student = require('../models/studentModel');
 const Teacher = require('../models/teacherModel');
@@ -222,9 +222,6 @@ exports.getStudents = async (req, res) => {
   };
   
 
-
-
-  
   exports.getDashboard = async (req, res) => {
     try {
       const teacherId = req.account.id;
@@ -250,3 +247,28 @@ exports.getStudents = async (req, res) => {
     }
   };
   
+
+exports.deleteTeacher = async (req, res) => {
+  try {
+    const teacherId = req.params.id;
+
+    const errorList = [];
+    const data = await Teacher.findById(teacherId);
+    if (!data) {
+      errorList.push({message: "Không tìm thấy dữ liệu"});
+    }
+    const isTeaching = await Class.findOne({ teacher: teacherId });
+    if (isTeaching) {
+      errorList.push({message: `Giáo viên này đang dạy lớp ${isTeaching.className}`});
+    }
+    if(errorList.length > 0){
+      return res.status(HTTP_STATUS.BAD_REQUEST).json(errorList);
+    }
+    data.status = false;
+    await data.save();
+    return res.status(HTTP_STATUS.OK).json(RESPONSE_MESSAGE.DELETED);
+  } catch (error) {
+    console.error("deleteTeacher error:", error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
+  }
+}
