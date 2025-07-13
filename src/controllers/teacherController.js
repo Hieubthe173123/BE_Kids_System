@@ -189,8 +189,7 @@ exports.getStudents = async (req, res) => {
   
       // Duyệt từng học sinh, lấy thông tin phụ huynh tương ứng
       const studentList = await Promise.all(students.map(async (student) => {
-        const parent = await Parent.findOne({ student: student._id }).select('fullName phone email address job');
-  
+        const parent = await Parent.findOne({ student: student._id }).select('fullName phoneNumber email address job');
         return {
           _id: student._id,
           fullName: student.fullName,
