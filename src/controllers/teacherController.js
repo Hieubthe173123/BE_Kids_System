@@ -4,6 +4,7 @@ const Student = require('../models/studentModel');
 const Teacher = require('../models/teacherModel');
 const Room = require('../models/roomModel');
 const Parent = require('../models/parentModel');
+const Schedule = require("../models/scheduleModel.js");
 // API 1: Lấy lịch dạy của teacher với phân trang (sử dụng Class model)
 exports.getTimeTable = async (req, res) => {
     try {
@@ -130,7 +131,7 @@ exports.getClasses = async (req, res) => {
         const classes = await Class.find({ 
             teacher: { $in: [teacher._id] }, 
             status: true ,
-           // schoolYear:"2025-2026"
+            //schoolYear:"2024-2025"
         })
 
         
@@ -189,8 +190,7 @@ exports.getStudents = async (req, res) => {
   
       // Duyệt từng học sinh, lấy thông tin phụ huynh tương ứng
       const studentList = await Promise.all(students.map(async (student) => {
-        const parent = await Parent.findOne({ student: student._id }).select('fullName phone email address job');
-  
+        const parent = await Parent.findOne({ student: student._id }).select('fullName phoneNumber email address job');
         return {
           _id: student._id,
           fullName: student.fullName,
@@ -270,6 +270,81 @@ exports.deleteTeacher = async (req, res) => {
     return res.status(HTTP_STATUS.OK).json(RESPONSE_MESSAGE.DELETED);
   } catch (error) {
     console.error("deleteTeacher error:", error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
+  }
+}
+
+
+exports.getScheduleByClassId = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    console.log("classId",classId);
+    const schedule = await Schedule.findOne({ class: classId })
+      .populate({
+        path: "class",
+        populate: { path: "room", select: "roomName" },
+        select: "className classAge schoolYear room"
+      })
+      .populate({
+        path: "schedule.Monday.curriculum",
+        select: "activityName activityFixed age"
+      })
+      .populate({
+        path: "schedule.Tuesday.curriculum",
+        select: "activityName activityFixed age"
+      })
+      .populate({
+        path: "schedule.Wednesday.curriculum",
+        select: "activityName activityFixed age"
+      })
+      .populate({
+        path: "schedule.Thursday.curriculum",
+        select: "activityName activityFixed age"
+      })
+      .populate({
+        path: "schedule.Friday.curriculum",
+        select: "activityName activityFixed age"
+      });
+
+    if (!schedule) {
+      return res.status(404).json({ message: "Schedule not found for this class" });
+    }
+
+    res.json(schedule);
+  } catch (err) {
+    console.error("Error fetching schedule by classId:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+exports.getClassTeacher = async (req, res) => {
+  try {
+    const accountId = req.account.id;
+    const teacher = await Teacher.findOne({account:accountId});
+    if (!teacher) {
+      return res.status(404).json({ message: "Không tìm thấy giáo viên" });
+    }
+    const classes = await Class.find({ teacher: teacher._id, status: true, schoolYear:"2024-2025" }).populate("students");
+    res.json(classes);
+  } catch (error) {
+    console.error("getClassTeacher error:", error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
+  }
+}
+
+
+exports.getTeacherInClass = async (req, res) => {
+  try {
+    const classId = req.params.classId;
+    const classData = await Class.findById(classId).populate("teacher");
+    if (!classData) {
+      return res.status(404).json({ message: "Không tìm thấy lớp" });
+    }
+    
+    res.json(classData.teacher);
+  } catch (error) {
+    console.error("getTeacherInClass error:", error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
   }
 }
