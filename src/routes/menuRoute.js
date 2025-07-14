@@ -5,7 +5,7 @@ const verifyToken = require("../middlewares/verifyToken");
 const weeklyMenuModel = require("../models/weeklyMenuModel");
 const { updateWeeklyMenu, deleteWeeklyMenu, createWeeklyMenu } = require("../controllers/weeklyMenuController");
 
-router.get("/", verifyToken, findAllGeneric(weeklyMenuModel, [""]));
+router.get("/", findAllGeneric(weeklyMenuModel, [""]));
 router.get("/:id", verifyToken, findIdGeneric(weeklyMenuModel, [""]));
 router.post("/", verifyToken, createWeeklyMenu);
 
