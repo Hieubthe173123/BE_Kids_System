@@ -41,7 +41,7 @@ const ageGroupMap = {
 exports.getSchoolClassesAndCurriculum = async (req, res) => {
     try {
         const { year } = req.body;
-        console.log("Year:", year);
+     
         // Lấy danh sách lớp theo năm học
         const classes = await Class.find({
             schoolYear: year,
@@ -65,15 +65,13 @@ exports.getSchoolClassesAndCurriculum = async (req, res) => {
 
         // Lấy curriculum còn hiệu lực
         const curriculums = await Curriculum.find({ status: true });
-        // console.log("Curriculums:", curriculums);
-        // Gom curriculum thành preschool_schedule
+
         const preschool_schedule = [];
         // Duyệt từng age group
         Object.values(ageGroupMap).forEach(
             ({ age_group, class_name, ageNum }, idx) => {
                 // Lấy curriculum cho age group này
                 // let ageNum = age_group;
-                console.log("Age group:", age_group, "Age number:", ageNum);
                 // if (age_group === "1-2 years") ageNum = 1; // curriculum lưu age là số
                 const activities = curriculums
                     .filter((c) => {
@@ -118,7 +116,6 @@ exports.getSchoolClassesAndCurriculum = async (req, res) => {
 exports.genScheduleWithAI = async (req, res) => {
     try {
         const { year } = req.body;
-        console.log("Year:", year);
         const classes = await Class.find({
             schoolYear: year,
             status: true,
@@ -205,7 +202,6 @@ exports.getCurriculumFixedTime = async (req, res) => {
         activityFixed: true,
         status: true,
     });
-    console.log("Curriculums:", curriculums);
     return curriculums.map((c) => ({
         id: c._id,
         activityName: c.activityName,
