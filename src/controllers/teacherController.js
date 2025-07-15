@@ -453,7 +453,13 @@ exports.swapSchedule = async (req, res) => {
       return res.status(400).json({ message: "Thiếu thông tin đổi tiết" });
     }
 
-    // Tìm lịch chính
+    const getWeekday = (date) =>
+      new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+
+    const weekday1 = getWeekday(date1);
+    const weekday2 = getWeekday(date2);
+
+    // Lấy lịch gốc
     const schedule = await Schedule.findOne({ class: classId })
       .populate("schedule.Monday.curriculum")
       .populate("schedule.Tuesday.curriculum")
@@ -462,16 +468,39 @@ exports.swapSchedule = async (req, res) => {
       .populate("schedule.Friday.curriculum");
 
     if (!schedule) {
-      return res.status(404).json({ message: "Không tìm thấy thời khóa biểu chính" });
+      return res.status(400).json({ message: "Không tìm thấy thời khóa biểu chính" });
     }
 
-    const getWeekday = (date) => new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+    // Lấy lịch override nếu có
+    const dailyOverrides = await DailySchedule.find({
+      class: classId,
+      date: { $in: [date1, date2] },
+      time: { $in: [time1, time2] },
+    }).populate("curriculum");
 
-    const weekday1 = getWeekday(date1);
-    const weekday2 = getWeekday(date2);
+    const overrideMap = {};
+    dailyOverrides.forEach((d) => {
+      overrideMap[`${d.date}-${d.time}`] = d.curriculum;
+    });
 
-    const slot1 = schedule.schedule[weekday1]?.find((s) => s.time === time1);
-    const slot2 = schedule.schedule[weekday2]?.find((s) => s.time === time2);
+    const findSlot = (date, weekday, time) => {
+      const override = overrideMap[`${date}-${time}`];
+      if (override) {
+        return { time, curriculum: override, fixed: override.activityFixed };
+      }
+
+      const slot = schedule.schedule[weekday]?.find((s) => s.time === time);
+      if (!slot) return null;
+
+      return {
+        time,
+        curriculum: slot.curriculum,
+        fixed: slot.fixed || slot.curriculum.activityFixed,
+      };
+    };
+
+    const slot1 = findSlot(date1, weekday1, time1);
+    const slot2 = findSlot(date2, weekday2, time2);
 
     if (!slot1 || !slot2) {
       return res.status(400).json({ message: "Không tìm thấy tiết học cần đổi" });
@@ -481,7 +510,6 @@ exports.swapSchedule = async (req, res) => {
       return res.status(400).json({ message: "Chỉ được đổi các tiết không cố định" });
     }
 
-    // Tiến hành cập nhật hoặc tạo mới DailySchedule
     await Promise.all([
       DailySchedule.findOneAndUpdate(
         { class: classId, date: date1, time: time1 },
@@ -492,13 +520,13 @@ exports.swapSchedule = async (req, res) => {
         { class: classId, date: date2, time: time2 },
         { curriculum: slot1.curriculum._id },
         { new: true, upsert: true }
-      )
+      ),
     ]);
 
     res.json({ message: "Đổi tiết giữa hai ngày thành công" });
-
   } catch (err) {
     console.error("swapSchedule error:", err);
     res.status(500).json({ message: "Lỗi server" });
   }
 };
+
