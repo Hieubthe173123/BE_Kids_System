@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Teacher = require("../models/teacherModel.js");
 
-const { getTimeTable, getClasses, getStudents, getDashboard, deleteTeacher,getScheduleByClassId,getClassTeacher,getTeacherInClass } = require('../controllers/teacherController.js');
+const { getTimeTable, getClasses, getStudents, getDashboard, deleteTeacher,getScheduleByClassId,getClassTeacher,getTeacherInClass, getScheduleByClassAndDate, swapSchedule } = require('../controllers/teacherController.js');
 const { createGeneric, findAllGeneric, deletedSoftGeneric, updateGeneric } = require('../controllers/useController.js');
 
 const verifyToken = require("../middlewares/verifyToken");
@@ -25,4 +25,7 @@ router.get("/class-teacher",verifyToken,getClassTeacher);
 router.put("/bulk-update", verifyToken, bulkUpdateAttendance);
 router.get("/teacherinclass/:classId", verifyToken, getTeacherInClass);   
 router.get("/attendance/history/:classId" , verifyToken, getAttendanceByDate);
+
+router.get("/schedule/day/:classId", verifyToken, getScheduleByClassAndDate);
+router.put("/schedule/swap-day" , verifyToken, swapSchedule);
 module.exports = router;
