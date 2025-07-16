@@ -12,6 +12,8 @@ const {
     getCurriculumFixedTime,
     saveClassSchedule,
     mergeActivity,
+    checkYearExistedSchedule,
+    getScheduleByClassNameAndYear,
 } = require("../controllers/scheduleController");
 
 router.get("/getclass", getSchoolClassesAndCurriculum);
@@ -19,5 +21,7 @@ router.get("/genAI", genScheduleWithAI);
 router.get("/fixed", getCurriculumFixedTime);
 router.post("/save", saveClassSchedule);
 router.get("/test", mergeActivity);
+router.get("/check-year", checkYearExistedSchedule);
+router.get("/class-schedule", getScheduleByClassNameAndYear);
 
 module.exports = router;

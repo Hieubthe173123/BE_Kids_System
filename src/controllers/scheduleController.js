@@ -117,7 +117,7 @@ exports.getSchoolClassesAndCurriculum = async (req, res) => {
 
 exports.genScheduleWithAI = async (req, res) => {
     try {
-        const { year } = req.body;
+        const { year } = req.query;
         console.log("Year:", year);
         const classes = await Class.find({
             schoolYear: year,
@@ -385,4 +385,91 @@ exports.mergeActivity = async (req, res) => {
     return res.status(HTTP_STATUS.OK).json({
         schedules: mergedResult,
     });
+};
+
+exports.checkYearExistedSchedule = async (req, res) => {
+    try {
+        const { year } = req.query;
+        const schedules = await Schedule.find({ schoolYear: year });
+        if (schedules.length > 0) {
+            return res.status(HTTP_STATUS.OK).json({
+                exists: true,
+                message: `Schedules for year ${year} already exist.`,
+            });
+        }
+        return res.status(HTTP_STATUS.OK).json({
+            exists: false,
+            message: `No schedules found for year ${year}.`,
+        });
+    } catch (err) {
+        return res
+            .status(HTTP_STATUS.SERVER_ERROR)
+            .json({ message: err.message });
+    }
+};
+
+exports.getScheduleByClassNameAndYear = async (req, res) => {
+    try {
+        const { schoolYear, className } = req.query;
+
+        if (!schoolYear || !className) {
+            return res
+                .status(400)
+                .json({ message: "Thiếu schoolYear hoặc className" });
+        }
+
+        // Tìm class theo schoolYear và className
+        const classDoc = await Class.findOne({
+            schoolYear: schoolYear,
+            className: className,
+            status: true, // Chỉ lấy lớp còn hiệu lực
+        });
+
+        if (!classDoc) {
+            return res.status(404).json({ message: "Không tìm thấy lớp học" });
+        }
+
+        // Tìm schedule của class
+        const scheduleDoc = await Schedule.findOne({
+            class: classDoc._id,
+            schoolYear,
+        }).lean(); // Dùng lean để xử lý nhanh hơn
+
+        if (!scheduleDoc) {
+            return res.status(404).json({ message: "Không tìm thấy lịch học" });
+        }
+
+        const schedule = {};
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+        for (const day of days) {
+            const activities = scheduleDoc.schedule[day] || [];
+
+            // Populate thủ công curriculum
+            const populatedActivities = await Promise.all(
+                activities.map(async (activity) => {
+                    const curriculum = await Curriculum.findById(
+                        activity.curriculum
+                    ).lean();
+                    return {
+                        id: curriculum._id.toString(),
+                        age: curriculum.age,
+                        time: activity.time,
+                        activity: curriculum.activityName,
+                        fixed: activity.fixed,
+                    };
+                })
+            );
+
+            schedule[day] = populatedActivities;
+        }
+
+        return res.status(200).json({
+            schedule,
+        });
+    } catch (error) {
+        console.error("Lỗi lấy lịch học:", error);
+        return res.status(500).json({ message: "Lỗi server" });
+    }
 };
