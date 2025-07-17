@@ -276,6 +276,7 @@ exports.getStudentClassInfo = async (req, res) => {
         const teacherNames = studentClass.teacher.map(t => t.fullName).join(", ");
 
         res.json({
+            classId: studentClass._id,
             className: studentClass.className,
             teacher: teacherNames,
             schoolYear: studentClass.schoolYear

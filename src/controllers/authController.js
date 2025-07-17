@@ -15,9 +15,7 @@ const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET || "wdp_301";
 
 exports.loginAccount = async (req, res) => {
     try {
-        console.log("🚀 ~ exports.loginAccount= ~ req.body:", req.body)
         const { username, password } = req.body;
-        console.log("🚀 ~ exports.loginAccount= ~ username, password:", username, password)
 
 
 

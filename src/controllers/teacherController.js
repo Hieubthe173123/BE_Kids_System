@@ -4,6 +4,9 @@ const Student = require('../models/studentModel');
 const Teacher = require('../models/teacherModel');
 const Room = require('../models/roomModel');
 const Parent = require('../models/parentModel');
+const Schedule = require("../models/scheduleModel.js");
+const DailySchedule = require("../models/dailyscheduleModel.js");
+const { getDatesInWeek } = require('../utils/validation');
 // API 1: Lấy lịch dạy của teacher với phân trang (sử dụng Class model)
 exports.getTimeTable = async (req, res) => {
     try {
@@ -130,7 +133,7 @@ exports.getClasses = async (req, res) => {
         const classes = await Class.find({ 
             teacher: { $in: [teacher._id] }, 
             status: true ,
-           // schoolYear:"2025-2026"
+            //schoolYear:"2024-2025"
         })
 
         
@@ -189,8 +192,7 @@ exports.getStudents = async (req, res) => {
   
       // Duyệt từng học sinh, lấy thông tin phụ huynh tương ứng
       const studentList = await Promise.all(students.map(async (student) => {
-        const parent = await Parent.findOne({ student: student._id }).select('fullName phone email address job');
-  
+        const parent = await Parent.findOne({ student: student._id }).select('fullName phoneNumber email address job');
         return {
           _id: student._id,
           fullName: student.fullName,
@@ -273,3 +275,258 @@ exports.deleteTeacher = async (req, res) => {
     res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
   }
 }
+
+
+exports.getScheduleByClassId = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { year, week } = req.query;
+
+    if (!classId || !year || !week) {
+      return res.status(400).json({ message: "Thiếu tham số classId, year hoặc week" });
+    }
+
+    // 1. Lấy schedule gốc
+    const mainSchedule = await Schedule.findOne({ class: classId })
+      .populate("schedule.Monday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Tuesday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Wednesday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Thursday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Friday.curriculum", "activityName activityFixed age")
+      .populate("class", "className classAge schoolYear room");
+
+    if (!mainSchedule) {
+      return res.status(404).json({ message: "Không tìm thấy thời khóa biểu" });
+    }
+
+    // 2. Tính ngày trong tuần (Monday -> Friday)
+    const datesInWeek = getDatesInWeek(parseInt(year), parseInt(week)); 
+    // { Monday: '2025-07-07', Tuesday: ..., ..., Friday: '2025-07-11' }
+
+    // 3. Lấy các override từ DailySchedule theo date
+    const overrideDates = Object.values(datesInWeek); 
+    
+    const overrides = await DailySchedule.find({
+      class: classId,
+      date: { $in: overrideDates }
+    }).populate("curriculum", "activityName activityFixed age");
+     
+      
+    // 4. Tạo map để tra nhanh
+    const overrideMap = {}; // { '2025-07-07': { '08:00-08:30': curriculumObj } }
+    overrides.forEach(item => {
+      const dateObj = new Date(item.date);
+      const dateStr = dateObj.toISOString().split('T')[0];
+      if (!overrideMap[dateStr]) overrideMap[dateStr] = {};
+      overrideMap[dateStr][item.time] = item.curriculum;
+    });
+  //  console.log('overrides map', overrideMap);
+   // console.log('check main schedule', mainSchedule);
+    
+        // 5. Gộp lịch
+        const normalizeTime = (str) => str.replace(/\s+/g, '').replace(/[–—]/g, '-');
+
+        const finalSchedule = {};
+        
+        for (const [day, dateStr] of Object.entries(datesInWeek)) {
+          const dailySchedule = mainSchedule.schedule[day] || [];
+        
+          finalSchedule[day] = dailySchedule.map((item) => {
+            const timeKey = normalizeTime(item.time);
+            const overrideCurriculum = overrideMap[dateStr]?.[timeKey];
+
+        
+            return {
+              time: item.time,
+              fixed: item.fixed,
+              curriculum: overrideCurriculum || item.curriculum,
+              isSwapped: !!overrideCurriculum,
+            };
+          });
+        }
+
+    // 6. Trả kết quả
+    res.json({
+      class: mainSchedule.class,
+      week: { year, week },
+      datesInWeek,
+      schedule: finalSchedule
+    });
+  } catch (err) {
+    console.error("getScheduleByClassId error:", err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+
+
+exports.getClassTeacher = async (req, res) => {
+  try {
+    const accountId = req.account.id;
+    const teacher = await Teacher.findOne({account:accountId});
+    if (!teacher) {
+      return res.status(404).json({ message: "Không tìm thấy giáo viên" });
+    }
+    const classes = await Class.find({ teacher: teacher._id, status: true, schoolYear:"2024-2025" }).populate("students");
+    res.json(classes);
+  } catch (error) {
+    console.error("getClassTeacher error:", error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
+  }
+}
+
+
+exports.getTeacherInClass = async (req, res) => {
+  try {
+    const classId = req.params.classId;
+    const classData = await Class.findById(classId).populate("teacher");
+    if (!classData) {
+      return res.status(404).json({ message: "Không tìm thấy lớp" });
+    }
+    
+    res.json(classData.teacher);
+  } catch (error) {
+    console.error("getTeacherInClass error:", error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Lỗi server" });
+  }
+}
+
+
+
+exports.getScheduleByClassAndDate = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { date } = req.query;
+
+    
+    if (!date) {
+      return res.status(400).json({ message: "Thiếu tham số ngày (date)" });
+    }
+
+    // Lấy lịch gốc
+    const mainSchedule = await Schedule.findOne({ class: classId })
+      .populate("schedule.Monday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Tuesday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Wednesday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Thursday.curriculum", "activityName activityFixed age")
+      .populate("schedule.Friday.curriculum", "activityName activityFixed age");
+
+    if (!mainSchedule) {
+      return res.status(400).json({ message: "Không tìm thấy thời khóa biểu" });
+    }
+
+    const weekday = new Date(date).toLocaleDateString("en-US", { weekday: "long" }); // e.g., Monday
+    const todaySchedule = mainSchedule.schedule[weekday];
+
+    if (!todaySchedule || todaySchedule.length === 0) {
+      return res.status(400).json({ message: "Không có lịch dạy cho ngày này" });
+    }
+
+    // Lấy override trong dailySchedule
+    const overrides = await DailySchedule.find({ class: classId, date }).populate("curriculum", "activityName activityFixed age");
+
+    const overrideMap = {};
+    overrides.forEach((item) => {
+      overrideMap[item.time] = item.curriculum;
+    });
+
+    // Gộp
+    const finalSchedule = todaySchedule.map((item) => ({
+      time: item.time,
+      fixed: item.fixed,
+      curriculum: overrideMap[item.time] || item.curriculum,
+      isSwapped: !!overrideMap[item.time]
+    }));
+
+    res.json({ date, classId, schedule: finalSchedule });
+  } catch (err) {
+    console.error("getScheduleByClassAndDate error:", err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+exports.swapSchedule = async (req, res) => {
+  try {
+    const { classId, date1, date2, time1, time2 } = req.body;
+
+    if (!classId || !date1 || !date2 || !time1 || !time2) {
+      return res.status(400).json({ message: "Thiếu thông tin đổi tiết" });
+    }
+
+    const getWeekday = (date) =>
+      new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+
+    const weekday1 = getWeekday(date1);
+    const weekday2 = getWeekday(date2);
+
+    // Lấy lịch gốc
+    const schedule = await Schedule.findOne({ class: classId })
+      .populate("schedule.Monday.curriculum")
+      .populate("schedule.Tuesday.curriculum")
+      .populate("schedule.Wednesday.curriculum")
+      .populate("schedule.Thursday.curriculum")
+      .populate("schedule.Friday.curriculum");
+
+    if (!schedule) {
+      return res.status(400).json({ message: "Không tìm thấy thời khóa biểu chính" });
+    }
+
+    // Lấy lịch override nếu có
+    const dailyOverrides = await DailySchedule.find({
+      class: classId,
+      date: { $in: [date1, date2] },
+      time: { $in: [time1, time2] },
+    }).populate("curriculum");
+
+    const overrideMap = {};
+    dailyOverrides.forEach((d) => {
+      overrideMap[`${d.date}-${d.time}`] = d.curriculum;
+    });
+
+    const findSlot = (date, weekday, time) => {
+      const override = overrideMap[`${date}-${time}`];
+      if (override) {
+        return { time, curriculum: override, fixed: override.activityFixed };
+      }
+
+      const slot = schedule.schedule[weekday]?.find((s) => s.time === time);
+      if (!slot) return null;
+
+      return {
+        time,
+        curriculum: slot.curriculum,
+        fixed: slot.fixed || slot.curriculum.activityFixed,
+      };
+    };
+
+    const slot1 = findSlot(date1, weekday1, time1);
+    const slot2 = findSlot(date2, weekday2, time2);
+
+    if (!slot1 || !slot2) {
+      return res.status(400).json({ message: "Không tìm thấy tiết học cần đổi" });
+    }
+
+    if (slot1.fixed || slot2.fixed) {
+      return res.status(400).json({ message: "Chỉ được đổi các tiết không cố định" });
+    }
+
+    await Promise.all([
+      DailySchedule.findOneAndUpdate(
+        { class: classId, date: date1, time: time1 },
+        { curriculum: slot2.curriculum._id },
+        { new: true, upsert: true }
+      ),
+      DailySchedule.findOneAndUpdate(
+        { class: classId, date: date2, time: time2 },
+        { curriculum: slot1.curriculum._id },
+        { new: true, upsert: true }
+      ),
+    ]);
+
+    res.json({ message: "Đổi tiết giữa hai ngày thành công" });
+  } catch (err) {
+    console.error("swapSchedule error:", err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+

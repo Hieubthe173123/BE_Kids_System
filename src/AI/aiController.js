@@ -1,8 +1,8 @@
-import fs from "fs";
-import path from "path";
-import { config } from "dotenv";
-import { GoogleGenAI } from "@google/genai";
-import { fileURLToPath } from "url";
+const fs = require("fs");
+const path = require("path");
+const { config } = require("dotenv");
+const { GoogleGenAI } = require("@google/genai");
+const { fileURLToPath } = require("url");
 
 config();
 
@@ -17,10 +17,10 @@ const ai = new GoogleGenAI({
  * @param {Object} data - { school_classes, preschool_schedule }
  * @returns {Promise<Object>} - Kết quả trả về từ GenAI
  */
-export async function generateScheduleWithGemini(data) {
+module.exports.generateScheduleWithGemini = async (data) => {
     // Đọc prompt mẫu
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
+   // const __filename = fileURLToPath(import.meta.url);
+ //   const __dirname = path.dirname(__filename);
 
     // Đường dẫn đúng tới file prompt
     const promptPath = path.join(__dirname, "schedule_prompt.md");
