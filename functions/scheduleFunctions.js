@@ -4,7 +4,7 @@ const Class = require("../src/models/classModel");
 const Curriculum = require("../src/models/curriculumModel");
 const Schedule = require("../src/models/scheduleModel");
 const { HTTP_STATUS } = require("../src/constants/useConstants");
-const { generateScheduleWithGemini } = require("../src/Al/aiController");
+const { generateScheduleWithGemini } = require("../src/AI/aiController");
 
 
 const ageGroupMap = {
