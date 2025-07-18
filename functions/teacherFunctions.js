@@ -204,6 +204,46 @@ app.http('getClassesForTeacher', {
     }
 });
 
+
+app.http('getClassesForTeacher2', {
+    methods: ['GET'],
+    authLevel: 'anonymous',
+    route: 'teacher/classes',
+    handler: async (request, context) => {
+        try {
+            await connectDB();
+
+            // Lấy tất cả giáo viên (hoặc bạn có thể truyền teacherId qua query nếu muốn lọc)
+            const teachers = await Teacher.find();
+            if (!teachers || teachers.length === 0) {
+                return { status: 404, jsonBody: { message: 'Không tìm thấy giáo viên nào' } };
+            }
+
+            // Lấy tất cả lớp có giáo viên
+            const classes = await Class.find({ teacher: { $in: teachers.map(t => t._id) }, status: true })
+                .populate('room', 'roomName')
+                .populate('students', 'fullName studentCode age gender')
+                .select('-__v');
+
+            return {
+                status: 200,
+                jsonBody: {
+                    message: 'Lấy danh sách lớp thành công',
+                    data: {
+                        classes: classes.map(cls => ({
+                            ...cls.toObject(),
+                            studentCount: cls.students.length
+                        }))
+                    }
+                }
+            };
+        } catch (error) {
+            context.log('getClasses error:', error);
+            return { status: 500, jsonBody: { message: 'Lỗi server' } };
+        }
+    }
+});
+
 app.http('getStudentsInClassForTeacher', {
     methods: ['GET'],
     authLevel: 'anonymous',
@@ -257,6 +297,27 @@ app.http('getStudentsInClassForTeacher', {
     }
 });
 
+// app.http('getTeacherInClass', {
+//     methods: ['GET'],
+//     authLevel: 'anonymous',
+//     route: 'teacher/teacherinclass/{classId}',
+//     handler: async (request, context) => {
+//         try {
+//             await connectDB();
+//             const { classId } = request.params;
+//             context.log("🚀 ~ handler: ~ classId:", classId)
+//             const classData = await Class.findById(classId).populate("teacher");
+//             if (!classData) {
+//                 return { status: 404, jsonBody: { message: "Không tìm thấy lớp" } };
+//             }
+//             return { status: 200, jsonBody: classData.teacher };
+//         } catch (error) {
+//             context.log("getTeacherInClass error:", error.message);
+//             return { status: 500, jsonBody: { message: "Lỗi server" } };
+//         }
+//     }
+// });
+
 app.http('getTeacherInClass', {
     methods: ['GET'],
     authLevel: 'anonymous',
@@ -265,11 +326,32 @@ app.http('getTeacherInClass', {
         try {
             await connectDB();
             const { classId } = request.params;
+
+            if (!classId) {
+                return { status: 400, jsonBody: { message: "Vui lòng cung cấp classId" } };
+            }
+
             const classData = await Class.findById(classId).populate("teacher");
+
             if (!classData) {
                 return { status: 404, jsonBody: { message: "Không tìm thấy lớp" } };
             }
-            return { status: 200, jsonBody: classData.teacher };
+
+            // Dù `teacher` là một object hay một mảng, cũng chuẩn hóa để luôn trả về một mảng
+            const teachers = classData.teacher;
+            let teacherArray = [];
+
+            if (teachers) {
+                if (Array.isArray(teachers)) {
+                    teacherArray = teachers;
+                } else {
+                    teacherArray = [teachers]; // Bọc object vào mảng
+                }
+            }
+
+            // Luôn trả về một mảng
+            return { status: 200, jsonBody: teacherArray };
+
         } catch (error) {
             context.log("getTeacherInClass error:", error.message);
             return { status: 500, jsonBody: { message: "Lỗi server" } };
