@@ -5,6 +5,8 @@ const Account = require("../src/models/accountModel");
 const Schedule = require("../src/models/scheduleModel");
 const Attendance = require("../src/models/attendanceModel");
 const CLOUDINARY_HELPER = require('../src/helper/uploadImageHelper');
+const multer = require('multer');
+const upload = multer(); 
 
 // ===== CRUD APIs =====
 
@@ -214,15 +216,23 @@ app.http('uploadPictureProfile', {
         try {
             await connectDB();
             const { parentId } = request.params;
+
             const parent = await Parent.findById(parentId);
             if (!parent) {
-                return { status: 404, jsonBody: { message: 'Parent not found' } };
+                return {
+                    status: 404,
+                    jsonBody: { message: 'Parent not found' }
+                };
             }
 
             const formData = await request.formData();
             const file = formData.get('file');
+
             if (!file) {
-                return { status: 400, jsonBody: { message: 'No file uploaded' } };
+                return {
+                    status: 400,
+                    jsonBody: { message: 'No file uploaded' }
+                };
             }
 
             const fileBuffer = Buffer.from(await file.arrayBuffer());
@@ -231,10 +241,19 @@ app.http('uploadPictureProfile', {
             parent.profilePicture = imageUrl;
             await parent.save();
 
-            return { status: 200, jsonBody: { message: 'Profile picture uploaded successfully', imageUrl } };
+            return {
+                status: 200,
+                jsonBody: {
+                    message: 'Profile picture uploaded successfully',
+                    imageUrl
+                }
+            };
         } catch (error) {
             context.log('Error uploading profile picture:', error);
-            return { status: 500, jsonBody: { message: 'Internal server error' } };
+            return {
+                status: 500,
+                jsonBody: { message: 'Internal server error' }
+            };
         }
     }
 });
