@@ -22,6 +22,7 @@ const curriculum = require("./routes/curriculumRoute");
 const adminRoute = require("./routes/adminRoute");
 
 const schedule = require("./routes/scheduleRoute");
+const holidayRoute = require("./routes/holidayRoute");
 // Khai báo dotenv
 dotenv.config();
 
@@ -61,6 +62,7 @@ app.use("/api/curriculum", curriculum);
 app.use("/api/admin", adminRoute);
 
 app.use("/api/schedule", schedule);
+app.use("/api/holiday", holidayRoute);
 
 // route test
 app.get("/", (req, res) => {

@@ -179,7 +179,7 @@ exports.genScheduleWithAI = async (req, res) => {
             }
             try {
                 result = JSON.parse(result);
-            } catch (e) {}
+            } catch (e) { }
         }
 
         const fixedCurriculums = await getCurriculumFixedTimeList();
