@@ -281,7 +281,7 @@ exports.getScheduleByClassId = async (req, res) => {
   try {
     const { classId } = req.params;
     const { year, week } = req.query;
-
+    
     if (!classId || !year || !week) {
       return res.status(400).json({ message: "Thiếu tham số classId, year hoặc week" });
     }
@@ -302,7 +302,7 @@ exports.getScheduleByClassId = async (req, res) => {
     // 2. Tính ngày trong tuần (Monday -> Friday)
     const datesInWeek = getDatesInWeek(parseInt(year), parseInt(week));
     // { Monday: '2025-07-07', Tuesday: ..., ..., Friday: '2025-07-11' }
-
+    
     // 3. Lấy các override từ DailySchedule theo date
     const overrideDates = Object.values(datesInWeek);
 
@@ -379,7 +379,6 @@ exports.getClassTeacher = async (req, res) => {
 exports.getTeacherInClass = async (req, res) => {
   try {
     const classId = req.params.classId;
-    console.log("🚀 ~ exports.getTeacherInClass= ~ classId:", classId)
     const classData = await Class.findById(classId).populate("teacher");
     if (!classData) {
       return res.status(404).json({ message: "Không tìm thấy lớp" });
