@@ -4,7 +4,7 @@ const moment = require('moment');
 const path = require('path');
 const ejs = require('ejs');
 
-const { HTTP_STATUS, RESPONSE_MESSAGE, STATE, NUMBER_STUDENT_IN_CLASS } = require('../src/constants/useConstants');
+const { HTTP_STATUS, RESPONSE_MESSAGE, STATE, NUMBER_STUDENT_IN_CLASS, VALIDATION_CONSTANTS } = require('../src/constants/useConstants');
 const { SMTP_CONFIG, NOTIFICATION_SUBJECT, IMAP_CONFIG, ERROR_SENT_MAIL, PASSWORD_DEFAULT, SUCCESS_ENROLL } = require('../src/constants/mailConstants');
 
 const EnrollSChool = require('../src/models/enrollSchoolModel');
@@ -37,6 +37,11 @@ app.http('createEnrollSchool', {
             if (numberStudentList >= numberAvailableList) {
                 return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: 'Số lượng học sinh đã vượt quá chỉ tiêu tuyển sinh' } };
             }
+
+            if(studentAge < VALIDATION_CONSTANTS.MIN_STUDENT_AGE || studentAge > VALIDATION_CONSTANTS.MAX_STUDENT_AGE){
+                return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: 'Số tuổi không hợp lệ với yêu cầu tuyển sinh của nhà trường' } };
+            }
+
 
             const today = moment().format('YYYYMMDD');
             const prefix = `STUEN-${today}`;
