@@ -203,16 +203,19 @@ exports.getCurriculumFixedTime = async (req, res) => {
         activityFixed: true,
         status: true,
     });
-    return curriculums.map((c) => ({
-        id: c._id,
-        activityName: c.activityName,
-        age: c.age,
-        fixed: c.activityFixed,
-        time:
-            c.startTime && c.endTime
-                ? `${toTimeStr(c.startTime)}-${toTimeStr(c.endTime)}`
-                : "",
-    }));
+    // return curriculums.map((c) => ({
+    //     id: c._id,
+    //     activityName: c.activityName,
+    //     age: c.age,
+    //     fixed: c.activityFixed,
+    //     time:
+    //         c.startTime && c.endTime
+    //             ? `${toTimeStr(c.startTime)}-${toTimeStr(c.endTime)}`
+    //             : "",
+    // }));
+    return res.status(HTTP_STATUS.OK).json({
+        curriculums: await getCurriculumFixedTimeList(),
+    });
 };
 
 function toTimeStr(dateStr) {

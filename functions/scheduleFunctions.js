@@ -18,19 +18,26 @@ const ageGroupMap = {
 function toTimeStr(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
-    const hh = String(d.getUTCHours()).padStart(2, "0");
-    const mm = String(d.getUTCMinutes()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
     return `${hh}:${mm}`;
 }
 
 async function getCurriculumFixedTimeList() {
-    const curriculums = await Curriculum.find({ activityFixed: true, status: true });
+    const curriculums = await Curriculum.find({
+        activityFixed: true,
+        status: true,
+    });
+
     return curriculums.map((c) => ({
         id: c._id,
         activityName: c.activityName,
         age: c.age,
         fixed: c.activityFixed,
-        time: c.startTime && c.endTime ? `${toTimeStr(c.startTime)}-${toTimeStr(c.endTime)}` : "",
+        time:
+            c.startTime && c.endTime
+                ? `${toTimeStr(c.startTime)}-${toTimeStr(c.endTime)}`
+                : "",
     }));
 }
 
@@ -183,6 +190,7 @@ app.http('genScheduleWithAI', {
             }
 
             const fixedCurriculums = await getCurriculumFixedTimeList();
+            context.log("Fixed curriculums:", fixedCurriculums);
             const mergedResult = await mergeFixedActivities(result, fixedCurriculums);
 
             return { status: HTTP_STATUS.OK, jsonBody: { schedules: mergedResult } };
@@ -208,6 +216,7 @@ app.http('getCurriculumFixedTime', {
                 fixed: c.activityFixed,
                 time: c.startTime && c.endTime ? `${toTimeStr(c.startTime)}-${toTimeStr(c.endTime)}` : "",
             }));
+            context.log("fixedTimes:", fixedTimes);
             return { status: HTTP_STATUS.OK, jsonBody: { data: fixedTimes } };
         } catch (err) {
             context.log.error(err);
