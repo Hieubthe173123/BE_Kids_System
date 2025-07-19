@@ -24,6 +24,7 @@ const connectDB = async () => {
         // useNewUrlParser & useUnifiedTopology không còn cần thiết với mongoose >= 6
         const client = await mongoose.connect(MONGO_URI, {
             dbName: MONGO_NAME,
+            ssl: true,
             serverSelectionTimeoutMS: 5000,
             socketTimeoutMS: 45000,
         });

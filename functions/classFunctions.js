@@ -376,6 +376,37 @@ app.http('addStudentsToClass', {
 });
 
 // 16. Thêm giáo viên vào lớp
+// app.http('addTeachersToClass', {
+//     methods: ['POST'],
+//     authLevel: 'anonymous',
+//     route: 'class/{id}/teachers',
+//     handler: async (request, context) => {
+//         try {
+//             await connectDB();
+//             const { id } = request.params;
+//             const { teacherIds } = await request.json();
+
+//             if (!Array.isArray(teacherIds) || teacherIds.length === 0) {
+//                 return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: 'teacherIds phải là một mảng và không được rỗng' } };
+//             }
+
+//             const classDoc = await Class.findById(id);
+//             if (!classDoc) {
+//                 return { status: HTTP_STATUS.NOT_FOUND, jsonBody: { message: 'Không tìm thấy lớp' } };
+//             }
+
+//             if (classDoc.teacher.length + teacherIds.length > 2) {
+//                 return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: 'Một lớp chỉ được tối đa 2 giáo viên' } };
+//             }
+
+//             await Class.findByIdAndUpdate(id, { $addToSet: { teacher: { $each: teacherIds } } });
+//             return { status: HTTP_STATUS.OK, jsonBody: { message: 'Đã thêm giáo viên vào lớp' } };
+//         } catch (err) {
+//             return { status: HTTP_STATUS.SERVER_ERROR, jsonBody: { message: err.message } };
+//         }
+//     }
+// });
+
 app.http('addTeachersToClass', {
     methods: ['POST'],
     authLevel: 'anonymous',
@@ -387,25 +418,56 @@ app.http('addTeachersToClass', {
             const { teacherIds } = await request.json();
 
             if (!Array.isArray(teacherIds) || teacherIds.length === 0) {
-                return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: 'teacherIds phải là một mảng và không được rỗng' } };
+                return {
+                    status: HTTP_STATUS.BAD_REQUEST,
+                    jsonBody: { message: 'teacherIds phải là một mảng và không được rỗng' }
+                };
+            }
+
+            // Lọc các ID hợp lệ (loại bỏ undefined, null, chuỗi rỗng)
+            const validTeacherIds = teacherIds.filter(
+                (id) => typeof id === 'string' && id.trim() !== ''
+            );
+
+            if (validTeacherIds.length === 0) {
+                return {
+                    status: HTTP_STATUS.BAD_REQUEST,
+                    jsonBody: { message: 'Danh sách teacherIds không hợp lệ' }
+                };
             }
 
             const classDoc = await Class.findById(id);
             if (!classDoc) {
-                return { status: HTTP_STATUS.NOT_FOUND, jsonBody: { message: 'Không tìm thấy lớp' } };
+                return {
+                    status: HTTP_STATUS.NOT_FOUND,
+                    jsonBody: { message: 'Không tìm thấy lớp' }
+                };
             }
 
-            if (classDoc.teacher.length + teacherIds.length > 2) {
-                return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: 'Một lớp chỉ được tối đa 2 giáo viên' } };
+            if (classDoc.teacher.length + validTeacherIds.length > 2) {
+                return {
+                    status: HTTP_STATUS.BAD_REQUEST,
+                    jsonBody: { message: 'Một lớp chỉ được tối đa 2 giáo viên' }
+                };
             }
 
-            await Class.findByIdAndUpdate(id, { $addToSet: { teacher: { $each: teacherIds } } });
-            return { status: HTTP_STATUS.OK, jsonBody: { message: 'Đã thêm giáo viên vào lớp' } };
+            await Class.findByIdAndUpdate(id, {
+                $addToSet: { teacher: { $each: validTeacherIds } }
+            });
+
+            return {
+                status: HTTP_STATUS.OK,
+                jsonBody: { message: 'Đã thêm giáo viên vào lớp' }
+            };
         } catch (err) {
-            return { status: HTTP_STATUS.SERVER_ERROR, jsonBody: { message: err.message } };
+            return {
+                status: HTTP_STATUS.SERVER_ERROR,
+                jsonBody: { message: err.message }
+            };
         }
     }
 });
+
 
 // 17. Gỡ học sinh khỏi lớp
 app.http('removeStudentFromClass', {
