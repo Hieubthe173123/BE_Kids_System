@@ -76,132 +76,6 @@ app.http('createEnrollSchool', {
         }
     }
 });
-// app.http('processEnrollSchoolAll', {
-//     methods: ['POST'],
-//     authLevel: 'anonymous',
-//     route: 'enrollSchool/process-enroll',
-//     handler: async (request, context) => {
-//         try {
-//             await connectDB();
-//             const enrollSchoolList = await EnrollSChool.find({
-//                 state: { $in: [STATE.WAITING_CONFIRM, STATE.ERROR] }
-//             });
-
-//             if (enrollSchoolList.length < 1) {
-//                 return {
-//                     status: HTTP_STATUS.NOT_FOUND,
-//                     jsonBody: {
-//                         message: `Không tìm thấy đơn đăng ký nào có trạng thái là Chờ xác nhận hoặc Xử lý lỗi`
-//                     }
-//                 };
-//             }
-
-//             const mail = new IMAP(IMAP_CONFIG);
-//             const mailSent = new SMTP(SMTP_CONFIG);
-//             const messages = await mail.readMail('INBOX', ['UNSEEN'], true);
-
-//             for (const message of messages) {
-//                 const { from, subject, attachments } = message;
-//                 if (!subject || !from || !from.value || !from.value[0]) continue;
-
-//                 const enrollCode = subject.split(" - ")[1];
-//                 const email = from.value[0].address;
-
-//                 if (!enrollCode) continue;
-
-//                 const enroll = await EnrollSChool.findOne({ enrollCode });
-//                 if (!enroll) {
-//                     context.log(`Không tìm thấy đơn đăng ký với mã: ${enrollCode}`);
-//                     continue;
-//                 }
-
-//                 await EnrollSChool.updateOne({ enrollCode }, { state: STATE.WAITING_PROCESSING });
-
-//                 if (subject.toUpperCase() === `${NOTIFICATION_SUBJECT.toUpperCase()} - ${enrollCode}`) {
-//                     if (!attachments || attachments.length === 0) {
-//                         const htmlErrorPath = path.join(__dirname, '..', 'templates', 'mailErrorImage.ejs');
-//                         const htmlError = await ejs.renderFile(htmlErrorPath);
-//                         await EnrollSChool.updateOne({ enrollCode }, { state: STATE.ERROR });
-//                         await mailSent.send(email, '', ERROR_SENT_MAIL, htmlError);
-//                         context.log(`✅ Mail báo lỗi (thiếu ảnh) đã gửi tới: ${email}`);
-//                     } else {
-//                         const {
-//                             studentName, studentAge, studentDob, note, studentGender,
-//                             parentName, parentDob, parentGender, IDCard, phoneNumber, address
-//                         } = enroll;
-
-//                         const imageUrl = await UPLOADIMAGE.uploadBuffer(attachments[0].content, attachments[0].contentType);
-
-//                         const today = moment().format('YY');
-//                         const prefix = `STU-${today}`;
-//                         const countToday = await Student.countDocuments({ studentCode: { $regex: `^${prefix}` } });
-//                         const studentCode = `${prefix}${String(countToday + 1).padStart(3, '0')}`;
-
-//                         const newStudent = await new Student({
-//                             studentCode,
-//                             fullName: studentName,
-//                             gender: studentGender,
-//                             dob: studentDob,
-//                             address,
-//                             age: studentAge,
-//                             image: imageUrl,
-//                             note
-//                         }).save();
-
-//                         const parent = await Parent.findOne({ IDCard }).populate("account", "username");
-
-//                         if (!parent) {
-//                             const baseUsername = await generateUsername(parentName);
-//                             const randomSuffix = Math.floor(10 + Math.random() * 90);
-//                             const username = `${baseUsername}${randomSuffix}`;
-
-//                             const newAcc = await new Account({ username, password: PASSWORD_DEFAULT }).save();
-//                             await new Parent({
-//                                 fullName: parentName, dob: parentDob, gender: parentGender,
-//                                 phoneNumber, email, IDCard, address,
-//                                 account: newAcc._id, student: [newStudent._id]
-//                             }).save();
-
-//                             const htmlPath = path.join(__dirname, '..', 'templates', 'mailSuccessNoAcc.ejs');
-//                             const htmlContent = await ejs.renderFile(htmlPath, {
-//                                 username, password: PASSWORD_DEFAULT, studentCode
-//                             });
-
-//                             await mailSent.send(email, '', SUCCESS_ENROLL, htmlContent);
-//                             context.log(`✅ Mail nhập học thành công (tài khoản mới) đã gửi tới: ${email}`);
-//                         } else {
-//                             await Parent.updateOne({ _id: parent._id }, { $push: { student: newStudent._id } });
-
-//                             const htmlPath = path.join(__dirname, '..', 'templates', 'mailSuccessAcc.ejs');
-//                             const htmlContent = await ejs.renderFile(htmlPath, {
-//                                 username: parent.account.username, studentCode
-//                             });
-
-//                             await mailSent.send(email, '', SUCCESS_ENROLL, htmlContent);
-//                             context.log(`✅ Mail nhập học thành công (tài khoản cũ) đã gửi tới: ${email}`);
-//                         }
-
-//                         await EnrollSChool.updateOne({ _id: enroll._id }, { state: STATE.FINISHED });
-//                     }
-//                 }
-//             }
-
-//             context.log("--------------------- Kết thúc Bot xử lý Email ---------------------");
-
-//             return {
-//                 status: HTTP_STATUS.OK,
-//                 jsonBody: { message: "Đã xử lý tất cả đơn đăng ký và gửi mail thông báo." }
-//             };
-
-//         } catch (error) {
-//             context.log("Lỗi trong function:", error);
-//             return {
-//                 status: HTTP_STATUS.SERVER_ERROR,
-//                 jsonBody: { message: error.message }
-//             };
-//         }
-//     }
-// });
 
 
 app.http('processEnrollSchoolAll', {
@@ -232,7 +106,7 @@ app.http('processEnrollSchoolAll', {
                     data: enrollSchoolList,
                 }
             };
-            
+
             setImmediate(async () => {
                 const mail = new IMAP(IMAP_CONFIG);
                 const mailSent = new SMTP(SMTP_CONFIG);

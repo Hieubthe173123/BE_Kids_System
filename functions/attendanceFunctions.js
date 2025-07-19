@@ -178,16 +178,16 @@ app.http('getScheduleByClassAndDate', {
             }
 
             const mainSchedule = await Schedule.findOne({ class: classId })
-            
-            .populate("schedule.Monday.curriculum", "activityName activityFixed age")
-            .populate("schedule.Tuesday.curriculum", "activityName activityFixed age")
-            .populate("schedule.Wednesday.curriculum", "activityName activityFixed age")
-            .populate("schedule.Thursday.curriculum", "activityName activityFixed age")
-            .populate("schedule.Friday.curriculum", "activityName activityFixed age");
+
+                .populate("schedule.Monday.curriculum", "activityName activityFixed age")
+                .populate("schedule.Tuesday.curriculum", "activityName activityFixed age")
+                .populate("schedule.Wednesday.curriculum", "activityName activityFixed age")
+                .populate("schedule.Thursday.curriculum", "activityName activityFixed age")
+                .populate("schedule.Friday.curriculum", "activityName activityFixed age");
 
             context.log(`mainSchedule:`, mainSchedule);
             context.log(`classId:`, classId);
-          //  context.log(`getAllschedule:`, getAllschedule);
+            //  context.log(`getAllschedule:`, getAllschedule);
 
             if (!mainSchedule) {
                 return {
@@ -245,7 +245,7 @@ app.http('swapSchedule', {
             await connectDB();
             const body = await request.json();
             const { classId, date1, date2, time1, time2 } = body;
-            
+
             if (!classId || !date1 || !date2 || !time1 || !time2) {
                 return {
                     status: 400,
@@ -306,8 +306,8 @@ app.http('swapSchedule', {
                     jsonBody: { message: "Không tìm thấy tiết học cần đổi" }
                 };
             }
-      
-            
+
+
 
             if (slot1.fixed || slot2.fixed) {
                 return {

@@ -424,7 +424,6 @@ app.http('addTeachersToClass', {
                 };
             }
 
-            // Lọc các ID hợp lệ (loại bỏ undefined, null, chuỗi rỗng)
             const validTeacherIds = teacherIds.filter(
                 (id) => typeof id === 'string' && id.trim() !== ''
             );

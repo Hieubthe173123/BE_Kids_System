@@ -283,53 +283,6 @@ app.http('resetPassword', {
     }
 });
 
-// Refresh accessToken
-// app.http('accessToken', {
-//     methods: ['POST'],
-//     authLevel: 'anonymous',
-//     route: 'auth/access-token',
-//     handler: async (request, context) => {
-//         try {
-//             await connectDB();
-//             const body = await request.json();
-//             const refreshToken = body.refreshToken;
-//             if (!refreshToken) {
-//                 return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: "Missing refresh token" } };
-//             }
-//             let payload;
-//             try {
-//                 payload = jwt.verify(refreshToken, ACCESS_SECRET);
-//             } catch (err) {
-//                 return { status: HTTP_STATUS.UNAUTHORIZED, jsonBody: { message: "Invalid or expired refresh token" } };
-//             }
-//             const redisToken = await redisClient.get(payload.id.toString());
-//             if (!redisToken || redisToken !== refreshToken) {
-//                 return { status: HTTP_STATUS.UNAUTHORIZED, jsonBody: { message: "Refresh token is not valid or has been revoked" } };
-//             }
-//             const account = await Account.findById(payload.id);
-//             if (!account) {
-//                 return { status: HTTP_STATUS.NOT_FOUND, jsonBody: { message: "Account not found" } };
-//             }
-//             const newAccessToken = jwt.sign(
-//                 { id: account._id, role: account.role },
-//                 ACCESS_SECRET,
-//                 { expiresIn: TOKEN.EXPIRESIN_TOKEN }
-//             );
-//             return {
-//                 status: HTTP_STATUS.OK,
-//                 cookies: [
-//                     { name: "accessToken", value: newAccessToken, httpOnly: true, secure: true, sameSite: "strict", maxAge: 1000 * 60 * 1 }
-//                 ],
-//                 jsonBody: { accessToken: newAccessToken }
-//             };
-//         } catch (err) {
-//             context.log("accessToken error:", err);
-//             return { status: HTTP_STATUS.SERVER_ERROR, jsonBody: { message: "Server error" } };
-//         }
-//     }
-// });
-
-
 // Làm mới accessToken từ refreshToken trong cookie
 app.http('refreshAccessToken', {
     methods: ['POST'],
@@ -385,44 +338,6 @@ app.http('refreshAccessToken', {
         }
     }
 });
-
-
-// // Đăng xuất
-// app.http('logoutAccount', {
-//     methods: ['POST'],
-//     authLevel: 'anonymous',
-//     route: 'auth/logout',
-//     handler: async (request, context) => {
-//         try {
-//             await connectDB();
-
-//             // **SỬA LỖI:** Đọc và parse cookie từ header
-//             const cookieHeader = request.headers.get('cookie');
-//             if (cookieHeader) {
-//                 const cookies = Object.fromEntries(cookieHeader.split(';').map(c => c.trim().split('=')));
-//                 const refreshToken = cookies.refreshToken;
-//                 if (refreshToken) {
-//                     const payload = jwt.decode(refreshToken);
-//                     if (payload && payload.id) {
-//                         if (!redisClient.isOpen) await connectRedis();
-//                         await redisClient.del(payload.id.toString());
-//                     }
-//                 }
-//             }
-
-//             return {
-//                 status: HTTP_STATUS.OK,
-//                 cookies: [
-//                     { name: "refreshToken", value: "", httpOnly: true, secure: true, sameSite: "None", path: "/", maxAge: -1 }
-//                 ],
-//                 jsonBody: { message: "Đăng xuất thành công" }
-//             };
-//         } catch (err) {
-//             context.log.error("Logout error:", err);
-//             return { status: HTTP_STATUS.SERVER_ERROR, jsonBody: { message: "Server error" } };
-//         }
-//     }
-// });
 
 // Lấy user test
 app.http('getUser', {
