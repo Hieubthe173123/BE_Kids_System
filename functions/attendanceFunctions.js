@@ -3,6 +3,7 @@ const connectDB = require("../shared/mongoose");
 const Class = require('../src/models/classModel');
 const Teacher = require('../src/models/teacherModel');
 const Attendance = require("../src/models/attendanceModel.js");
+const Schedule = require("../src/models/scheduleModel.js");
 const jwt = require("jsonwebtoken");
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET || "wdp_301";
 
@@ -156,3 +157,187 @@ app.http('getAttendanceByDate', {
         }
     }
 });
+
+app.http('getScheduleByClassAndDate', {
+    methods: ['GET'],
+    route: 'teacher/schedule/day/{classId}',
+    authLevel: 'anonymous',
+    handler: async (request, context) => {
+        context.log(`HTTP trigger function processed a request for url "${request.url}"`);
+
+        try {
+            await connectDB();
+            const classId = request.params.classId;
+            const date = request.query.get('date');
+            if (!date) {
+                return {
+                    status: 400,
+                    jsonBody: { message: "Thiếu tham số ngày (date)" }
+                };
+            }
+
+            const mainSchedule = await Schedule.findOne({ class: classId })
+            const getAllschedule = await Schedule.find()
+            // .populate("schedule.Monday.curriculum", "activityName activityFixed age")
+            // .populate("schedule.Tuesday.curriculum", "activityName activityFixed age")
+            // .populate("schedule.Wednesday.curriculum", "activityName activityFixed age")
+            // .populate("schedule.Thursday.curriculum", "activityName activityFixed age")
+            // .populate("schedule.Friday.curriculum", "activityName activityFixed age");
+
+            context.log(`mainSchedule:`, mainSchedule);
+            context.log(`classId:`, classId);
+            context.log(`getAllschedule:`, getAllschedule);
+
+            if (!mainSchedule) {
+                return {
+                    status: 400,
+                    jsonBody: { message: "Không tìm thấy thời khóa biểu" }
+                };
+            }
+
+            const weekday = new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+            const todaySchedule = mainSchedule.schedule[weekday];
+
+            if (!todaySchedule || todaySchedule.length === 0) {
+                return {
+                    status: 400,
+                    jsonBody: { message: "Không có lịch dạy cho ngày này" }
+                };
+            }
+
+            const overrides = await DailySchedule.find({ class: classId, date }).populate("curriculum", "activityName activityFixed age");
+
+            const overrideMap = {};
+            overrides.forEach((item) => {
+                overrideMap[item.time] = item.curriculum;
+            });
+
+            const finalSchedule = todaySchedule.map((item) => ({
+                time: item.time,
+                fixed: item.fixed,
+                curriculum: overrideMap[item.time] || item.curriculum,
+                isSwapped: !!overrideMap[item.time]
+            }));
+
+            return {
+                jsonBody: { date, classId, schedule: finalSchedule }
+            };
+
+        } catch (err) {
+            context.log("getScheduleByClassAndDate error:", err);
+            return {
+                status: 500,
+                jsonBody: { message: "Lỗi server" }
+            };
+        }
+    }
+});
+
+app.http('swapSchedule', {
+    methods: ['PUT'],
+    route: 'teacher/schedule/swap-day',
+    authLevel: 'anonymous',
+    handler: async (request, context) => {
+        context.log(`HTTP trigger function processed a request for url "${request.url}"`);
+
+        try {
+            await connectDB();
+            const body = await request.json();
+            const { classId, date1, date2, time1, time2 } = body;
+
+            if (!classId || !date1 || !date2 || !time1 || !time2) {
+                return {
+                    status: 400,
+                    jsonBody: { message: "Thiếu thông tin đổi tiết" }
+                };
+            }
+
+            const getWeekday = (date) => new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+
+            const weekday1 = getWeekday(date1);
+            const weekday2 = getWeekday(date2);
+
+            const schedule = await Schedule.findOne({ class: classId })
+                .populate("schedule.Monday.curriculum")
+                .populate("schedule.Tuesday.curriculum")
+                .populate("schedule.Wednesday.curriculum")
+                .populate("schedule.Thursday.curriculum")
+                .populate("schedule.Friday.curriculum");
+
+            if (!schedule) {
+                return {
+                    status: 400,
+                    jsonBody: { message: "Không tìm thấy thời khóa biểu chính" }
+                };
+            }
+
+            const dailyOverrides = await DailySchedule.find({
+                class: classId,
+                date: { $in: [date1, date2] },
+                time: { $in: [time1, time2] },
+            }).populate("curriculum");
+
+            const overrideMap = {};
+            dailyOverrides.forEach((d) => {
+                overrideMap[`${d.date}-${d.time}`] = d.curriculum;
+            });
+
+            const findSlot = (date, weekday, time) => {
+                const override = overrideMap[`${date}-${time}`];
+                if (override) {
+                    return { time, curriculum: override, fixed: override.activityFixed };
+                }
+                const slot = schedule.schedule[weekday]?.find((s) => s.time === time);
+                if (!slot) return null;
+                return {
+                    time,
+                    curriculum: slot.curriculum,
+                    fixed: slot.fixed || slot.curriculum.activityFixed,
+                };
+            };
+
+            const slot1 = findSlot(date1, weekday1, time1);
+            const slot2 = findSlot(date2, weekday2, time2);
+
+            if (!slot1 || !slot2) {
+                return {
+                    status: 400,
+                    jsonBody: { message: "Không tìm thấy tiết học cần đổi" }
+                };
+            }
+
+            if (slot1.fixed || slot2.fixed) {
+                return {
+                    status: 400,
+                    jsonBody: { message: "Chỉ được đổi các tiết không cố định" }
+                };
+            }
+
+            await Promise.all([
+                DailySchedule.findOneAndUpdate(
+                    { class: classId, date: date1, time: time1 },
+                    { curriculum: slot2.curriculum._id },
+                    { new: true, upsert: true }
+                ),
+                DailySchedule.findOneAndUpdate(
+                    { class: classId, date: date2, time: time2 },
+                    { curriculum: slot1.curriculum._id },
+                    { new: true, upsert: true }
+                ),
+            ]);
+
+            return {
+                jsonBody: { message: "Đổi tiết giữa hai ngày thành công" }
+            };
+        } catch (err) {
+            context.log.error("swapSchedule error:", err);
+            return {
+                status: 500,
+                jsonBody: { message: "Lỗi server" }
+            };
+        }
+    }
+});
+
+
+

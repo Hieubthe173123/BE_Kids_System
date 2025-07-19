@@ -297,26 +297,6 @@ app.http('getStudentsInClassForTeacher', {
     }
 });
 
-// app.http('getTeacherInClass', {
-//     methods: ['GET'],
-//     authLevel: 'anonymous',
-//     route: 'teacher/teacherinclass/{classId}',
-//     handler: async (request, context) => {
-//         try {
-//             await connectDB();
-//             const { classId } = request.params;
-//             context.log("🚀 ~ handler: ~ classId:", classId)
-//             const classData = await Class.findById(classId).populate("teacher");
-//             if (!classData) {
-//                 return { status: 404, jsonBody: { message: "Không tìm thấy lớp" } };
-//             }
-//             return { status: 200, jsonBody: classData.teacher };
-//         } catch (error) {
-//             context.log("getTeacherInClass error:", error.message);
-//             return { status: 500, jsonBody: { message: "Lỗi server" } };
-//         }
-//     }
-// });
 
 app.http('getTeacherInClass', {
     methods: ['GET'],
@@ -424,59 +404,59 @@ app.http('getWeeklyScheduleForTeacher', {
     }
 });
 
-app.http('swapSchedule', {
-    methods: ['POST'],
-    authLevel: 'anonymous',
-    route: 'teacher/schedule/swap',
-    handler: async (request, context) => {
-        try {
-            await connectDB();
-            const { classId, date1, date2, time1, time2 } = await request.json();
+// app.http('swapSchedule', {
+//     methods: ['POST'],
+//     authLevel: 'anonymous',
+//     route: 'teacher/schedule/swap',
+//     handler: async (request, context) => {
+//         try {
+//             await connectDB();
+//             const { classId, date1, date2, time1, time2 } = await request.json();
 
-            if (!classId || !date1 || !date2 || !time1 || !time2) {
-                return { status: 400, jsonBody: { message: "Thiếu thông tin đổi tiết" } };
-            }
+//             if (!classId || !date1 || !date2 || !time1 || !time2) {
+//                 return { status: 400, jsonBody: { message: "Thiếu thông tin đổi tiết" } };
+//             }
 
-            const getWeekday = (date) => new Date(date).toLocaleDateString("en-US", { weekday: "long" });
-            const weekday1 = getWeekday(date1);
-            const weekday2 = getWeekday(date2);
+//             const getWeekday = (date) => new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+//             const weekday1 = getWeekday(date1);
+//             const weekday2 = getWeekday(date2);
 
-            const schedule = await Schedule.findOne({ class: classId }).populate("schedule.Monday.curriculum").populate("schedule.Tuesday.curriculum").populate("schedule.Wednesday.curriculum").populate("schedule.Thursday.curriculum").populate("schedule.Friday.curriculum");
-            if (!schedule) {
-                return { status: 404, jsonBody: { message: "Không tìm thấy thời khóa biểu chính" } };
-            }
+//             const schedule = await Schedule.findOne({ class: classId }).populate("schedule.Monday.curriculum").populate("schedule.Tuesday.curriculum").populate("schedule.Wednesday.curriculum").populate("schedule.Thursday.curriculum").populate("schedule.Friday.curriculum");
+//             if (!schedule) {
+//                 return { status: 404, jsonBody: { message: "Không tìm thấy thời khóa biểu chính" } };
+//             }
 
-            const dailyOverrides = await DailySchedule.find({ class: classId, date: { $in: [date1, date2] }, time: { $in: [time1, time2] } }).populate("curriculum");
-            const overrideMap = {};
-            dailyOverrides.forEach(d => { overrideMap[`${new Date(d.date).toISOString().split('T')[0]}-${d.time}`] = d.curriculum; });
+//             const dailyOverrides = await DailySchedule.find({ class: classId, date: { $in: [date1, date2] }, time: { $in: [time1, time2] } }).populate("curriculum");
+//             const overrideMap = {};
+//             dailyOverrides.forEach(d => { overrideMap[`${new Date(d.date).toISOString().split('T')[0]}-${d.time}`] = d.curriculum; });
 
-            const findSlot = (date, weekday, time) => {
-                const override = overrideMap[`${date}-${time}`];
-                if (override) return { time, curriculum: override, fixed: override.activityFixed };
-                const slot = schedule.schedule[weekday]?.find((s) => s.time === time);
-                if (!slot) return null;
-                return { time, curriculum: slot.curriculum, fixed: slot.fixed || slot.curriculum.activityFixed };
-            };
+//             const findSlot = (date, weekday, time) => {
+//                 const override = overrideMap[`${date}-${time}`];
+//                 if (override) return { time, curriculum: override, fixed: override.activityFixed };
+//                 const slot = schedule.schedule[weekday]?.find((s) => s.time === time);
+//                 if (!slot) return null;
+//                 return { time, curriculum: slot.curriculum, fixed: slot.fixed || slot.curriculum.activityFixed };
+//             };
 
-            const slot1 = findSlot(date1, weekday1, time1);
-            const slot2 = findSlot(date2, weekday2, time2);
+//             const slot1 = findSlot(date1, weekday1, time1);
+//             const slot2 = findSlot(date2, weekday2, time2);
 
-            if (!slot1 || !slot2) {
-                return { status: 404, jsonBody: { message: "Không tìm thấy tiết học cần đổi" } };
-            }
-            if (slot1.fixed || slot2.fixed) {
-                return { status: 400, jsonBody: { message: "Chỉ được đổi các tiết không cố định" } };
-            }
+//             if (!slot1 || !slot2) {
+//                 return { status: 404, jsonBody: { message: "Không tìm thấy tiết học cần đổi" } };
+//             }
+//             if (slot1.fixed || slot2.fixed) {
+//                 return { status: 400, jsonBody: { message: "Chỉ được đổi các tiết không cố định" } };
+//             }
 
-            await Promise.all([
-                DailySchedule.findOneAndUpdate({ class: classId, date: date1, time: time1 }, { curriculum: slot2.curriculum._id }, { new: true, upsert: true }),
-                DailySchedule.findOneAndUpdate({ class: classId, date: date2, time: time2 }, { curriculum: slot1.curriculum._id }, { new: true, upsert: true })
-            ]);
+//             await Promise.all([
+//                 DailySchedule.findOneAndUpdate({ class: classId, date: date1, time: time1 }, { curriculum: slot2.curriculum._id }, { new: true, upsert: true }),
+//                 DailySchedule.findOneAndUpdate({ class: classId, date: date2, time: time2 }, { curriculum: slot1.curriculum._id }, { new: true, upsert: true })
+//             ]);
 
-            return { status: 200, jsonBody: { message: "Đổi tiết giữa hai ngày thành công" } };
-        } catch (err) {
-            context.log("swapSchedule error:", err);
-            return { status: 500, jsonBody: { message: "Lỗi server" } };
-        }
-    }
-});
+//             return { status: 200, jsonBody: { message: "Đổi tiết giữa hai ngày thành công" } };
+//         } catch (err) {
+//             context.log("swapSchedule error:", err);
+//             return { status: 500, jsonBody: { message: "Lỗi server" } };
+//         }
+//     }
+// });
