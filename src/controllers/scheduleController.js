@@ -116,7 +116,6 @@ exports.getSchoolClassesAndCurriculum = async (req, res) => {
 exports.genScheduleWithAI = async (req, res) => {
     try {
         const { year } = req.query;
-        console.log("Year:", year);
         const classes = await Class.find({
             schoolYear: year,
             status: true,
