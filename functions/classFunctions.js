@@ -3,7 +3,8 @@ const connectDB = require("../shared/mongoose");
 const Class = require('../src/models/classModel');
 const Student = require('../src/models/studentModel');
 const Teacher = require('../src/models/teacherModel');
-const { HTTP_STATUS, RESPONSE_MESSAGE } = require('../src/constants/useConstants');
+const Room = require('../src/models/roomModel');
+const { HTTP_STATUS, RESPONSE_MESSAGE, VALIDATION_CONSTANTS, NUMBER_STUDENT_IN_CLASS } = require('../src/constants/useConstants');
 
 // Helper function to validate class and sort class name
 
