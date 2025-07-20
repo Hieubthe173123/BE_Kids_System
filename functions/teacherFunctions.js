@@ -143,50 +143,50 @@ app.http('deleteTeacher', {
 
 // ===== Teacher Specific Logic =====
 
-// app.http('getClassesForTeacher', {
-//     methods: ['GET'],
-//     authLevel: 'anonymous',
-//     route: 'teacher/class-teacher',
-//     handler: async (request, context) => {
-//         try {
-//             await connectDB();
-//             const authHeader = request.headers.get('authorization');
-//             if (!authHeader || !authHeader.startsWith('Bearer ')) {
-//                 return { status: 401, jsonBody: { message: "Yêu cầu xác thực không hợp lệ." } };
-//             }
-//             const token = authHeader.split(' ')[1];
-//             const payload = jwt.verify(token, ACCESS_SECRET);
-//             const teacherAccountId = payload.id;
+app.http('getClassesForTeacher2', {
+    methods: ['GET'],
+    authLevel: 'anonymous',
+    route: 'teacher/classes',
+    handler: async (request, context) => {
+        try {
+            await connectDB();
+            const authHeader = request.headers.get('authorization');
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return { status: 401, jsonBody: { message: "Yêu cầu xác thực không hợp lệ." } };
+            }
+            const token = authHeader.split(' ')[1];
+            const payload = jwt.verify(token, ACCESS_SECRET);
+            const teacherAccountId = payload.id;
 
-//             const teacher = await Teacher.findOne({ account: teacherAccountId });
-//             if (!teacher) {
-//                 return { status: 404, jsonBody: { message: 'Không tìm thấy giáo viên' } };
-//             }
+            const teacher = await Teacher.findOne({ account: teacherAccountId });
+            if (!teacher) {
+                return { status: 404, jsonBody: { message: 'Không tìm thấy giáo viên' } };
+            }
 
-//             const classes = await Class.find({ teacher: { $in: [teacher._id] }, status: true })
-//                 .populate('room', 'roomName')
-//                 .populate('students', 'fullName studentCode age gender')
-//                 .select('-__v');
+            const classes = await Class.find({ teacher: { $in: [teacher._id] }, status: true })
+                .populate('room', 'roomName')
+                .populate('students', 'fullName studentCode age gender')
+                .select('-__v');
 
-//             return {
-//                 status: 200,
-//                 jsonBody: {
-//                     message: 'Lấy danh sách lớp thành công',
-//                     data: {
-//                         teacher: { _id: teacher._id, fullName: teacher.fullName, teacherCode: teacher.teacherCode },
-//                         classes: classes.map(cls => ({ ...cls.toObject(), studentCount: cls.students.length }))
-//                     }
-//                 }
-//             };
-//         } catch (error) {
-//             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-//                 return { status: 401, jsonBody: { message: "Token không hợp lệ hoặc đã hết hạn" } };
-//             }
-//             context.log('getClasses error:', error);
-//             return { status: 500, jsonBody: { message: 'Lỗi server' } };
-//         }
-//     }
-// });
+            return {
+                status: 200,
+                jsonBody: {
+                    message: 'Lấy danh sách lớp thành công',
+                    data: {
+                        teacher: { _id: teacher._id, fullName: teacher.fullName, teacherCode: teacher.teacherCode },
+                        classes: classes.map(cls => ({ ...cls.toObject(), studentCount: cls.students.length }))
+                    }
+                }
+            };
+        } catch (error) {
+            if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+                return { status: 401, jsonBody: { message: "Token không hợp lệ hoặc đã hết hạn" } };
+            }
+            context.log('getClasses error:', error);
+            return { status: 500, jsonBody: { message: 'Lỗi server' } };
+        }
+    }
+});
 
 app.http('getClassesForTeacher', {
     methods: ['GET'],
@@ -227,45 +227,6 @@ app.http('getClassesForTeacher', {
     }
 });
 
-
-app.http('getClassesForTeacher2', {
-    methods: ['GET'],
-    authLevel: 'anonymous',
-    route: 'teacher/classes',
-    handler: async (request, context) => {
-        try {
-            await connectDB();
-
-            // Lấy tất cả giáo viên (hoặc bạn có thể truyền teacherId qua query nếu muốn lọc)
-            const teachers = await Teacher.find();
-            if (!teachers || teachers.length === 0) {
-                return { status: 404, jsonBody: { message: 'Không tìm thấy giáo viên nào' } };
-            }
-
-            // Lấy tất cả lớp có giáo viên
-            const classes = await Class.find({ teacher: { $in: teachers.map(t => t._id) }, status: true })
-                .populate('room', 'roomName')
-                .populate('students', 'fullName studentCode age gender')
-                .select('-__v');
-
-            return {
-                status: 200,
-                jsonBody: {
-                    message: 'Lấy danh sách lớp thành công',
-                    data: {
-                        classes: classes.map(cls => ({
-                            ...cls.toObject(),
-                            studentCount: cls.students.length
-                        }))
-                    }
-                }
-            };
-        } catch (error) {
-            context.log('getClasses error:', error);
-            return { status: 500, jsonBody: { message: 'Lỗi server' } };
-        }
-    }
-});
 
 app.http('getStudentsInClassForTeacher', {
     methods: ['GET'],
