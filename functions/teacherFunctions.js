@@ -1,6 +1,6 @@
 const { app } = require('@azure/functions');
 const connectDB = require("../shared/mongoose");
-const { HTTP_STATUS, RESPONSE_MESSAGE} = require('../src/constants/useConstants');
+const { HTTP_STATUS, RESPONSE_MESSAGE } = require('../src/constants/useConstants');
 const { PASSWORD_DEFAULT, IMAGE_CONFIG, IMAP_CONFIG, SMTP_CONFIG, NOTIFICATION_SUBJECT_TEACHER } = require('../src/constants/mailConstants.js');
 const path = require('path');
 const ejs = require('ejs');
@@ -124,7 +124,7 @@ app.http('createTeacher', {
                 }
             });
             return { status: 201, jsonBody: savedTeacher };
-c
+            c
 
         } catch (err) {
             context.log("Lỗi khi tạo giáo viên:", err);
