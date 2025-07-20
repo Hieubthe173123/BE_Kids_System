@@ -1,13 +1,20 @@
 const { app } = require('@azure/functions');
 const connectDB = require("../shared/mongoose");
-const { HTTP_STATUS, RESPONSE_MESSAGE } = require('../src/constants/useConstants');
+const { HTTP_STATUS, RESPONSE_MESSAGE} = require('../src/constants/useConstants');
+const { PASSWORD_DEFAULT, IMAGE_CONFIG, IMAP_CONFIG, SMTP_CONFIG, NOTIFICATION_SUBJECT_TEACHER } = require('../src/constants/mailConstants.js');
+const path = require('path');
+const ejs = require('ejs');
 const Class = require('../src/models/classModel');
 const Teacher = require('../src/models/teacherModel');
 const Parent = require('../src/models/parentModel');
 const Schedule = require("../src/models/scheduleModel.js");
+const Account = require('../src/models/accountModel');
 const DailySchedule = require("../src/models/dailyscheduleModel.js");
 const jwt = require("jsonwebtoken");
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET || "wdp_301";
+const SMTP = require('../src/helper/stmpHepler');
+const IMAP = require('../src/helper/iMapHelper');
+const { generateUsername } = require('../src/helper/index');
 
 
 // ===== HELPER FUNCTIONS =====
@@ -80,9 +87,45 @@ app.http('createTeacher', {
         try {
             await connectDB();
             const body = await request.json();
-            const newTeacher = new Teacher(body);
+            const { fullName, dob, gender, phoneNumber, email, IDCard, address } = body
+            const baseUsername = await generateUsername(fullName);
+            const username = `${baseUsername}${Math.floor(10 + Math.random() * 90)}`;
+            const newAcc = await new Account({
+                username,
+                password: PASSWORD_DEFAULT,
+                role: 'teacher',
+            }).save();
+            const newTeacher = new Teacher({
+                fullName,
+                dob,
+                gender,
+                phoneNumber,
+                email,
+                IDCard,
+                address,
+                account: newAcc._id
+            });
+
             const savedTeacher = await newTeacher.save();
+            setImmediate(async () => {
+                try {
+                    const templatePath = path.join(__dirname, '..', 'templates', 'mailAccountTeacher.ejs');
+                    const htmlConfirm = await ejs.renderFile(templatePath, {
+                        fullName: fullName,
+                        username: username,
+                        password: PASSWORD_DEFAULT
+                    });
+                    const mail = new SMTP(SMTP_CONFIG);
+                    mail.send(email, '', NOTIFICATION_SUBJECT_TEACHER, htmlConfirm, '', () => {
+                        context.log(`✅ Mail gửi thành công đến email : ${email}`);
+                    });
+                } catch (emailError) {
+                    context.log("Lỗi khi gửi email xác nhận:", emailError);
+                }
+            });
             return { status: 201, jsonBody: savedTeacher };
+c
+
         } catch (err) {
             context.log("Lỗi khi tạo giáo viên:", err);
             return { status: 400, jsonBody: { message: err.message } };
