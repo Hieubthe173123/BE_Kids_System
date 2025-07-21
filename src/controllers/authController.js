@@ -8,17 +8,16 @@ const Parent = require('../models/parentModel');
 const Principal = require('../models/principalModel')
 const { sendOTPEmail } = require("../utils/emailsOTP");
 const { findAccountByEmail } = require("../helper");
+const teacherModel = require("../models/teacherModel");
 
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET || "wdp_301";
 
 exports.loginAccount = async (req, res) => {
     try {
-               console.log("🚀 ~ exports.loginAccount= ~ req.body:", req.body)
         const { username, password } = req.body;
-        console.log("🚀 ~ exports.loginAccount= ~ username, password:", username, password)
 
-      
+
 
         if (!username || !password) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json(RESPONSE_MESSAGE.MISSING_FIELDS);
@@ -32,7 +31,7 @@ exports.loginAccount = async (req, res) => {
         if (!account) {
             return res.status(HTTP_STATUS.NOT_FOUND).json(RESPONSE_MESSAGE.NOT_FOUND);
         }
-      
+
 
         const checkPassword = await bcrypt.compare(password, account.password);
         if (!checkPassword) {
@@ -48,15 +47,15 @@ exports.loginAccount = async (req, res) => {
             secure: true,
             sameSite: "strict",
             maxAge: 10000 * 60 * 1, // 1 phút
-          });
+        });
 
         const refreshToken = jwt.sign({ id: account._id }, ACCESS_SECRET, { expiresIn: TOKEN.EXPIRESIN_REFESH_TOKEN });
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: true,
             sameSite: "strict",
-            maxAge: 1000 * 60 * 5  , // 5 phút
-          });
+            maxAge: 1000 * 60 * 5, // 5 phút
+        });
 
         await redisClient.set(account._id.toString(), refreshToken, {
             EX: TOKEN.EX
@@ -64,7 +63,7 @@ exports.loginAccount = async (req, res) => {
         res.status(HTTP_STATUS.OK).json({
             message: "Đăng nhập thành công",
             accessToken,
-    
+
         });
 
     } catch (err) {
@@ -89,8 +88,8 @@ exports.logoutAccount = async (req, res) => {
 
 exports.getInformationAccount = async (req, res) => {
     try {
-        const accountId =  req.account.id;
-       
+        const accountId = req.account.id;
+
 
         const account = await Account.findById(accountId);
         if (!account) {
@@ -98,15 +97,15 @@ exports.getInformationAccount = async (req, res) => {
         }
 
         const role = account.role;
-     
-        
+
+
         let information = {};
 
         if (role === USER_ROLES.PARENT) {
             information = await Parent.findOne({ account: accountId }).populate("account", "role");
 
         } else if (role === USER_ROLES.TEACHER) {
-            information = await Teacher.findOne({ account: accountId }).populate("account", "role");
+            information = await teacherModel.findOne({ account: accountId }).populate("account", "role");
         } else {
             information = await Principal.findOne({ account: accountId }).populate("account", "role");
         }
@@ -203,74 +202,73 @@ exports.resetPassword = async (req, res) => {
 
 exports.accessToken = async (req, res) => {
     try {
-      // Lấy refreshToken từ Cookie (HttpOnly)
-      const refreshToken = req.cookies.refreshToken;
-  
-      if (!refreshToken) {
-        return res
-          .status(HTTP_STATUS.BAD_REQUEST)
-          .json({ message: "Missing refresh token" });
-      }
-  
-      // Giải mã refreshToken
-      let payload;
-      try {
-        payload = jwt.verify(refreshToken, ACCESS_SECRET);
-      } catch (err) {
-        return res
-          .status(HTTP_STATUS.UNAUTHORIZED)
-          .json({ message: "Invalid or expired refresh token" });
-      }
-  
-      // Kiểm tra refreshToken trong Redis
-      const redisToken = await redisClient.get(payload.id.toString());
-  
-      if (!redisToken || redisToken !== refreshToken) {
-        return res
-          .status(HTTP_STATUS.UNAUTHORIZED)
-          .json({ message: "Refresh token is not valid or has been revoked" });
-      }
-  
-      // Tìm tài khoản
-      const account = await Account.findById(payload.id);
-      if (!account) {
-        return res
-          .status(HTTP_STATUS.NOT_FOUND)
-          .json({ message: "Account not found" });
-      }
-  
-      // Cấp accessToken mới
-      const newAccessToken = jwt.sign(
-        { id: account._id, role: account.role },
-        ACCESS_SECRET,
-        { expiresIn: TOKEN.EXPIRESIN_TOKEN }
-      );
-      
-      res.cookie("accessToken", newAccessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        maxAge: 1000 * 60 * 1, // 1 phút
-      });
+        // Lấy refreshToken từ Cookie (HttpOnly)
+        const refreshToken = req.cookies.refreshToken;
 
-  
-      return res.status(HTTP_STATUS.OK).json({
-        accessToken: newAccessToken,
-      });
+        if (!refreshToken) {
+            return res
+                .status(HTTP_STATUS.BAD_REQUEST)
+                .json({ message: "Missing refresh token" });
+        }
+
+        // Giải mã refreshToken
+        let payload;
+        try {
+            payload = jwt.verify(refreshToken, ACCESS_SECRET);
+        } catch (err) {
+            return res
+                .status(HTTP_STATUS.UNAUTHORIZED)
+                .json({ message: "Invalid or expired refresh token" });
+        }
+
+        // Kiểm tra refreshToken trong Redis
+        const redisToken = await redisClient.get(payload.id.toString());
+
+        if (!redisToken || redisToken !== refreshToken) {
+            return res
+                .status(HTTP_STATUS.UNAUTHORIZED)
+                .json({ message: "Refresh token is not valid or has been revoked" });
+        }
+
+        // Tìm tài khoản
+        const account = await Account.findById(payload.id);
+        if (!account) {
+            return res
+                .status(HTTP_STATUS.NOT_FOUND)
+                .json({ message: "Account not found" });
+        }
+
+        // Cấp accessToken mới
+        const newAccessToken = jwt.sign(
+            { id: account._id, role: account.role },
+            ACCESS_SECRET,
+            { expiresIn: TOKEN.EXPIRESIN_TOKEN }
+        );
+
+        res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 1000 * 60 * 1, // 1 phút
+        });
+
+
+        return res.status(HTTP_STATUS.OK).json({
+            accessToken: newAccessToken,
+        });
     } catch (err) {
-      console.error("accessToken error:", err);
-      return res
-        .status(HTTP_STATUS.SERVER_ERROR)
-        .json({ message: "Server error" });
+        console.error("accessToken error:", err);
+        return res
+            .status(HTTP_STATUS.SERVER_ERROR)
+            .json({ message: "Server error" });
     }
-  };
+};
 
-  exports.getUser = async (req, res) => {
+exports.getUser = async (req, res) => {
     try {
-      return res.status(HTTP_STATUS.OK).json({ message: "User found" });
+        return res.status(HTTP_STATUS.OK).json({ message: "User found" });
     } catch (err) {
-      console.error("getUser error:", err);
-      return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Server error" });
+        console.error("getUser error:", err);
+        return res.status(HTTP_STATUS.SERVER_ERROR).json({ message: "Server error" });
     }
-  };
-  
+};
