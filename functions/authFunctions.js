@@ -98,6 +98,24 @@ app.http('loginAccount', {
 });
 
 // Đăng xuất
+// app.http('logoutAccount', {
+//     methods: ['POST'],
+//     authLevel: 'anonymous',
+//     route: 'auth/logout',
+//     handler: async (request, context) => {
+//         try {
+//             await connectDB();
+//             const body = await request.json();
+//             const accountId = body.accountId;
+//             await redisClient.del(accountId.toString());
+//             return { status: HTTP_STATUS.OK, jsonBody: { message: "Logout successful" } };
+//         } catch (err) {
+//             context.log("Logout error:", err.message);
+//             return { status: HTTP_STATUS.SERVER_ERROR, jsonBody: { message: "Server error" } };
+//         }
+//     }
+// });
+
 app.http('logoutAccount', {
     methods: ['POST'],
     authLevel: 'anonymous',
@@ -105,12 +123,20 @@ app.http('logoutAccount', {
     handler: async (request, context) => {
         try {
             await connectDB();
-            const body = await request.json();
+            let body;
+            try {
+                body = await request.json();
+            } catch (jsonErr) {
+                return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: "Invalid JSON body" } };
+            }
+            if (!body || !body.accountId) {
+                return { status: HTTP_STATUS.BAD_REQUEST, jsonBody: { message: "Missing accountId" } };
+            }
             const accountId = body.accountId;
             await redisClient.del(accountId.toString());
             return { status: HTTP_STATUS.OK, jsonBody: { message: "Logout successful" } };
         } catch (err) {
-            context.log("Logout error:", err);
+            context.log("Logout error:", err.message);
             return { status: HTTP_STATUS.SERVER_ERROR, jsonBody: { message: "Server error" } };
         }
     }
