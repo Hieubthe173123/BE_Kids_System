@@ -4,6 +4,9 @@ const Parent = require('../src/models/parentModel');
 const Teacher = require('../src/models/teacherModel');
 const Principal = require('../src/models/principalModel');
 const Student = require('../src/models/studentModel');
+const Class = require('../src/models/classModel');
+const Room = require('../src/models/roomModel');
+
 
 // 1. Lấy tất cả thông tin tài khoản (Phụ huynh & Giáo viên)
 app.http('getAllAccountsInfo', {
@@ -148,3 +151,29 @@ app.http('saveAccountInfo', {
         }
     }
 });
+
+
+
+app.http('getDataForStatistic', {
+    methods: ['GET'],
+    authLevel: 'anonymous', // Thay đổi authLevel nếu cần xác thực
+    route: 'management/statistic',
+    handler: async (request, context) => {
+        try {
+            await connectDB();
+          // statistic class,room,student,parent, and now i want to get all data then give it to front end
+            const parents = await Parent.find().populate('student');
+            const teachers = await Teacher.find();
+            const students = await Student.find();
+            const classes = await Class.find().populate('teacher').populate('students');    
+            const rooms = await Room.find();
+       //     console.log('data',parents,teachers,students,classes,rooms);
+            
+            return { status: 200, jsonBody: { parents, teachers, students, classes, rooms } };
+        } catch (err) {     
+            context.log("Lỗi khi lấy tất cả tài khoản:", err);
+            return { status: 500, jsonBody: { message: "Lỗi máy chủ" } };
+        }
+    }
+});
+
