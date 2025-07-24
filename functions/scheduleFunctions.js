@@ -5,6 +5,7 @@ const Curriculum = require("../src/models/curriculumModel");
 const Schedule = require("../src/models/scheduleModel");
 const { HTTP_STATUS } = require("../src/constants/useConstants");
 const { generateScheduleWithGemini } = require("../src/AI/aiController");
+const { DateTime } = require("luxon");
 
 
 const ageGroupMap = {
@@ -17,10 +18,8 @@ const ageGroupMap = {
 
 function toTimeStr(dateStr) {
     if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    return `${hh}:${mm}`;
+    const dt = DateTime.fromISO(dateStr, { zone: "utc" }).setZone("Asia/Ho_Chi_Minh");
+    return dt.toFormat("HH:mm");
 }
 
 async function getCurriculumFixedTimeList() {
