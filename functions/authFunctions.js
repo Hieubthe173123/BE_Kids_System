@@ -356,7 +356,7 @@ app.http('refreshAccessToken', {
                 jsonBody: { accessToken: newAccessToken }
             };
         } catch (err) {
-            context.log.error("accessToken error:", err);
+            context.log("accessToken error:", err);
             if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
                 return { status: HTTP_STATUS.UNAUTHORIZED, jsonBody: { message: "Refresh token không hợp lệ hoặc đã hết hạn" } };
             }

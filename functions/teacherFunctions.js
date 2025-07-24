@@ -238,15 +238,26 @@ app.http('getClassesForTeacher', {
     handler: async (request, context) => {
         try {
             await connectDB();
-
-            // Lấy tất cả giáo viên (hoặc bạn có thể truyền teacherId qua query nếu muốn lọc)
-            const teachers = await Teacher.find();
-            if (!teachers || teachers.length === 0) {
-                return { status: 404, jsonBody: { message: 'Không tìm thấy giáo viên nào' } };
+            const authHeader = request.headers.get('authorization');
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return { status: 401, jsonBody: { message: "Yêu cầu xác thực không hợp lệ." } };
             }
 
-            // Lấy tất cả lớp có giáo viên
-            const classes = await Class.find({ teacher: { $in: teachers.map(t => t._id) }, status: true })
+            const token = authHeader.split(' ')[1];
+
+            let payload;
+            try {
+                payload = jwt.verify(token, ACCESS_SECRET);
+            } catch (error) {
+                return { status: 403, jsonBody: { message: "Token không hợp lệ hoặc đã hết hạn." } };
+            }
+            const teacherAccountId = payload.id;
+            const teacher = await Teacher.findOne({ account: teacherAccountId });
+
+            if (!teacher) {
+                return { status: 404, jsonBody: { message: 'Không tìm thấy giáo viên.' } };
+            }
+            const classes = await Class.find({ teacher: teacher._id, status: true })
                 .populate('room', 'roomName')
                 .populate('students', 'fullName studentCode age gender')
                 .select('-__v');

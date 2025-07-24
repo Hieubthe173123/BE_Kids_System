@@ -78,7 +78,17 @@ exports.logoutAccount = async (req, res) => {
         const accountId = req.account.id;
 
         await redisClient.del(accountId.toString());
-
+        // remove cookies
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+        });
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+        });
         return res.status(HTTP_STATUS.OK).json({ message: "Logout successful" });
     } catch (err) {
         console.error("Logout error:", err);

@@ -143,7 +143,7 @@ app.http('getSchoolClassesAndCurriculum', {
 
             return { status: HTTP_STATUS.OK, jsonBody: { school_classes, preschool_schedule } };
         } catch (err) {
-            context.log.error(err);
+            context.log(err);
             return { status: err.status || 500, jsonBody: { message: err.message || "Lỗi máy chủ" } };
         }
     }
@@ -190,12 +190,12 @@ app.http('genScheduleWithAI', {
             }
 
             const fixedCurriculums = await getCurriculumFixedTimeList();
-            context.log("Fixed curriculums:", fixedCurriculums);
+            // context.log("Fixed curriculums:", fixedCurriculums);
             const mergedResult = await mergeFixedActivities(result, fixedCurriculums);
 
             return { status: HTTP_STATUS.OK, jsonBody: { schedules: mergedResult } };
         } catch (err) {
-            context.log.error(err);
+            context.log(err);
             return { status: err.status || 500, jsonBody: { message: err.message || "Lỗi máy chủ" } };
         }
     }
@@ -219,7 +219,7 @@ app.http('getCurriculumFixedTime', {
             context.log("fixedTimes:", fixedTimes);
             return { status: HTTP_STATUS.OK, jsonBody: { data: fixedTimes } };
         } catch (err) {
-            context.log.error(err);
+            context.log(err);
             return { status: err.status || 500, jsonBody: { message: err.message || "Lỗi máy chủ" } };
         }
     }
@@ -260,7 +260,7 @@ app.http('saveClassSchedule', {
             }
             return { status: 200, jsonBody: { success: true, results } };
         } catch (err) {
-            context.log.error(err);
+            context.log(err);
             return { status: err.status || 500, jsonBody: { message: err.message || "Lỗi máy chủ" } };
         }
     }
@@ -278,7 +278,7 @@ app.http('mergeActivity', {
             const mergedResult = await mergeFixedActivities(schedules, fixedCurriculums);
             return { status: HTTP_STATUS.OK, jsonBody: { schedules: mergedResult } };
         } catch (err) {
-            context.log.error(err);
+            context.log(err);
             return { status: err.status || 500, jsonBody: { message: err.message || "Lỗi máy chủ" } };
         }
     }
@@ -298,7 +298,7 @@ app.http('checkYearExistedSchedule', {
             }
             return { status: HTTP_STATUS.OK, jsonBody: { exists: false, message: `No schedules found for year ${year}.` } };
         } catch (err) {
-            context.log.error(err);
+            context.log(err);
             return { status: err.status || 500, jsonBody: { message: err.message || "Lỗi máy chủ" } };
         }
     }
@@ -348,7 +348,7 @@ app.http('getScheduleByClassNameAndYear', {
             }
             return { status: 200, jsonBody: { schedule } };
         } catch (error) {
-            context.log.error("Lỗi lấy lịch học:", error);
+            context.log("Lỗi lấy lịch học:", error);
             return { status: error.status || 500, jsonBody: { message: error.message || "Lỗi server" } };
         }
     }
