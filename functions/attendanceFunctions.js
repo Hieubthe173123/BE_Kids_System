@@ -333,7 +333,7 @@ app.http('swapSchedule', {
                 jsonBody: { message: "Đổi tiết giữa hai ngày thành công" }
             };
         } catch (err) {
-            context.log.error("swapSchedule error:", err);
+            context.log("swapSchedule error:", err);
             return {
                 status: 500,
                 jsonBody: { message: "Lỗi server" }

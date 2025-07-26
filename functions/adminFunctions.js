@@ -156,21 +156,19 @@ app.http('saveAccountInfo', {
 
 app.http('getDataForStatistic', {
     methods: ['GET'],
-    authLevel: 'anonymous', // Thay đổi authLevel nếu cần xác thực
+    authLevel: 'anonymous',
     route: 'management/statistic',
     handler: async (request, context) => {
         try {
             await connectDB();
-          // statistic class,room,student,parent, and now i want to get all data then give it to front end
             const parents = await Parent.find().populate('student');
             const teachers = await Teacher.find();
             const students = await Student.find();
-            const classes = await Class.find().populate('teacher').populate('students');    
+            const classes = await Class.find().populate('teacher').populate('students');
             const rooms = await Room.find();
-       //     console.log('data',parents,teachers,students,classes,rooms);
-            
-            return { status: 200, jsonBody: { parents, teachers, students, classes, rooms } };
-        } catch (err) {     
+            const classGraduate = await Class.find({ schoolYear: "2024-2025", classAge: "5" }).populate('teacher').populate('students');
+            return { status: 200, jsonBody: { parents, teachers, students, classes, rooms, classGraduate } };
+        } catch (err) {
             context.log("Lỗi khi lấy tất cả tài khoản:", err);
             return { status: 500, jsonBody: { message: "Lỗi máy chủ" } };
         }
